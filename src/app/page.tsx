@@ -16,7 +16,7 @@ import { getContractMetadata } from "thirdweb/extensions/common";
 import {
   getActiveClaimCondition as getActiveClaimCondition20,
   getCurrencyMetadata,
-  isERC20,
+  isERC20 as checkIsERC20, // Renombramos para evitar confusión
 } from "thirdweb/extensions/erc20";
 
 // React Hooks
@@ -31,19 +31,24 @@ export default function Home(): JSX.Element {
     client,
   });
 
-  // Check if the contract is ERC20
-  const isERC20Query = useReadContract(isERC20, { contract });
-  const isERC20: boolean = typeof isERC20Query.data === "boolean" ? isERC20Query.data : false;
+  // Check if the contract is ERC20 using the correct extension
+  const { data: isERC20Data, isLoading: loadingIsERC20 } = useReadContract(
+	contract,
+	"isERC20"
+	);
+
+  // Asegúrate de que isERC20 sea de tipo booleano
+  const isERC20: boolean = isERC20Data === true;
 
   // Contract Metadata and Claim Condition Queries
   const contractMetadataQuery = useReadContract(getContractMetadata, {
     contract,
   });
 
-  // Mueve la declaración de claimCondition20 después de la declaración de isERC20
+  // Asegúrate de que claimCondition20 solo se ejecute si isERC20 es true
   const claimCondition20 = useReadContract(getActiveClaimCondition20, {
     contract,
-    queryOptions: { enabled: isERC20 }, // Ahora isERC20 está definido y tiene un valor booleano
+    queryOptions: { enabled: !loadingIsERC20 && isERC20 }, // Solo habilitar si no está cargando y es un ERC20
   });
 
   // Token and Currency Metadata
@@ -61,7 +66,7 @@ export default function Home(): JSX.Element {
 
   const currencyMetadata = useReadContract(getCurrencyMetadata, {
     contract: currencyContract,
-    queryOptions: { enabled: !!currency },
+    queryOptions: { enabled: !!currency }, // Esto es correcto, !!currency es un booleano
   });
 
   const currencySymbol = currencyMetadata.data?.symbol || "";

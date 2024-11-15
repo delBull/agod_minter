@@ -1,5 +1,5 @@
 {
-  "name": "nft-minting-template",
+  "name": "agod-minter",
   "version": "0.1.0",
   "private": true,
   "scripts": {
