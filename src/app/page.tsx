@@ -16,7 +16,7 @@ import { getContractMetadata } from "thirdweb/extensions/common";
 import {
   getActiveClaimCondition as getActiveClaimCondition20,
   getCurrencyMetadata,
-  isERC20 as checkIsERC20, // Renombramos para evitar confusión
+  isERC20,
 } from "thirdweb/extensions/erc20";
 
 // React Hooks
@@ -31,24 +31,16 @@ export default function Home(): JSX.Element {
     client,
   });
 
-  // Check if the contract is ERC20 using the correct extension
-  const { data: isERC20Data, isLoading: loadingIsERC20 } = useReadContract(
-	contract,
-	"isERC20"
-	);
-
-  // Asegúrate de que isERC20 sea de tipo booleano
-  const isERC20: boolean = isERC20Data === true;
-
-  // Contract Metadata and Claim Condition Queries
+  // Contract Queries
+  const isERC20Query = useReadContract(isERC20, { contract });
   const contractMetadataQuery = useReadContract(getContractMetadata, {
     contract,
   });
 
-  // Asegúrate de que claimCondition20 solo se ejecute si isERC20 es true
+  // Claim Condition Queries
   const claimCondition20 = useReadContract(getActiveClaimCondition20, {
     contract,
-    queryOptions: { enabled: !loadingIsERC20 && isERC20 }, // Solo habilitar si no está cargando y es un ERC20
+    queryOptions: { enabled: isERC20Query.data },
   });
 
   // Token and Currency Metadata
@@ -66,15 +58,14 @@ export default function Home(): JSX.Element {
 
   const currencyMetadata = useReadContract(getCurrencyMetadata, {
     contract: currencyContract,
-    queryOptions: { enabled: !!currency }, // Esto es correcto, !!currency es un booleano
+    queryOptions: { enabled: !!currency },
   });
 
   const currencySymbol = currencyMetadata.data?.symbol || "";
-
-  const pricePerToken: number | null =
+  const pricePerToken =
     currencyMetadata.data && priceInWei !== null && priceInWei !== undefined
-        ? Number(toTokens(priceInWei, currencyMetadata.data.decimals))
-        : null; // Cambia `undefined` a `null`
+      ? Number(toTokens(priceInWei, currencyMetadata.data.decimals))
+      : null;
 
   return (
     <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
@@ -87,7 +78,7 @@ export default function Home(): JSX.Element {
           description={description}
           currencySymbol={currencySymbol}
           pricePerToken={pricePerToken}
-          isERC20={isERC20}
+          isERC20={!!isERC20Query.data} // Asegúrate de que esto sea un booleano
         />
         <ThirdwebResources />
       </div>

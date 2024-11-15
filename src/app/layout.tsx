@@ -10,6 +10,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
 	title: "AGOD Token minter",
 	description: "Mintea AGOD Token y abre la puerta al universo Blockchain",
+	icons: {
+        icon: "/favicon.ico", // Aquí se indica el favicon
+    },
 };
 
 export default function RootLayout({

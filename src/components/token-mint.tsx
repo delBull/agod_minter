@@ -3,16 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useSpring, animated, SpringValue } from "react-spring";
+import { useSpring } from "react-spring";
 import CountUp from "react-countup";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Toast } from "@/components/ui/toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Minus, Plus } from "lucide-react";
-import type { ThirdwebContract, sendTransaction } from "thirdweb";
+import type { ThirdwebContract } from "thirdweb";
 import {
     ConnectButton,
     MediaRenderer,
@@ -20,9 +19,6 @@ import {
 } from "thirdweb/react";
 import { client } from "@/lib/thirdwebClient";
 import React from "react";
-import { Skeleton } from "./ui/skeleton";
-import { claimTo } from "thirdweb/extensions/erc20"; // Importa claimTo
-import type { Erc20 } from "@thirdweb-dev/sdk";
 
 type Props = {
     contract: ThirdwebContract;
@@ -31,7 +27,7 @@ type Props = {
     contractImage: string;
     pricePerToken: number | null;
     currencySymbol: string | null;
-    isERC20: boolean; // Añadido para evitar error en Línea 70
+    isERC20: boolean;
 };
 
 export function TokenMint(props: Props) {
@@ -41,7 +37,6 @@ export function TokenMint(props: Props) {
     const [customAddress, setCustomAddress] = useState("");
     const account = useActiveAccount();
 
-    // Hook useSpring fuera de cualquier condicional
     const quantitySpring = useSpring({ number: quantity, from: { number: 0 } });
 
     const decreaseQuantity = () => {
@@ -59,10 +54,9 @@ export function TokenMint(props: Props) {
         }
     };
 
-    // Maneja el caso de un precio nulo
     if (props.pricePerToken === null || props.pricePerToken === undefined) {
         console.error("Invalid pricePerToken");
-        return <div>Error: Invalid price</div>; // Muestra un mensaje en lugar de retornar null
+        return <div>Error: Invalid price</div>;
     }
 
     return (
@@ -81,9 +75,6 @@ export function TokenMint(props: Props) {
                             className="w-full h-full object-cover"
                             alt=""
                             src={props.contractImage || "/placeholder.svg?height=400&width=400"}
-                            style={{
-                                filter: "drop-shadow(0px 0px 24px #a726a9a8)",
-                            }}
                         />
                         <div className="hidden absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-sm font-semibold">
                             {props.pricePerToken} {props.currencySymbol}/each
@@ -112,7 +103,7 @@ export function TokenMint(props: Props) {
 
                             <Input
                                 type="number"
-                                value={Math.round(quantitySpring.number.get())} // Muestra el valor animado como texto
+                                value={Math.round(quantitySpring.number.get())}
                                 onChange={handleQuantityChange}
                                 className="w-28 text-center rounded-none border-x-0 pl-6"
                                 min="1"

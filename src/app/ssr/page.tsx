@@ -1,13 +1,17 @@
+"use client";
+
 import { TokenMint } from "@/components/token-mint";
 import {
     defaultChainId,
     defaultTokenContractAddress,
-    defaultTokenId,
 } from "@/lib/constants";
 import { client } from "@/lib/thirdwebClient";
 import { defineChain, getContract, toTokens } from "thirdweb";
 import { getContractMetadata } from "thirdweb/extensions/common";
-import { getActiveClaimCondition as getActiveClaimCondition20 } from "thirdweb/extensions/erc20";
+import {
+    getActiveClaimCondition as getActiveClaimCondition20,
+    isERC20,
+} from "thirdweb/extensions/erc20";
 import { getCurrencyMetadata } from "thirdweb/extensions/erc20";
 
 // Página SSR actualizada para Tokens
@@ -18,6 +22,9 @@ export default async function Home() {
         chain,
         client,
     });
+
+    // Verifica si el contrato es ERC20
+    const isERC20Query = await isERC20({ contract });
 
     const [contractMetadataQuery, claimCondition20] = await Promise.all([
         getContractMetadata({ contract }),
@@ -55,7 +62,7 @@ export default async function Home() {
             description={description}
             currencySymbol={currencySymbol}
             pricePerToken={pricePerToken}
-            isERC20={true}
+            isERC20={isERC20Query} // Cambiado para utilizar el resultado de la verificación
         />
     );
 }
