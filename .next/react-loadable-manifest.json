@@ -543,6 +543,16 @@
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_rpc_actions_eth_getTransactionCount_js.js"
     ]
   },
+  "../node_modules/thirdweb/dist/esm/transaction/actions/to-serializable-transaction.js -> ./zksync/send-eip712-transaction.js": {
+    "id": "../node_modules/thirdweb/dist/esm/transaction/actions/to-serializable-transaction.js -> ./zksync/send-eip712-transaction.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_transaction_actions_zksync_send-eip712-tran-4f36d0.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/utils/any-evm/zksync/isZkSyncChain.js -> ../../../chains/utils.js": {
+    "id": "../node_modules/thirdweb/dist/esm/utils/any-evm/zksync/isZkSyncChain.js -> ../../../chains/utils.js",
+    "files": []
+  },
   "../node_modules/thirdweb/dist/esm/utils/contract/fetchContractMetadata.js -> ../../storage/download.js": {
     "id": "../node_modules/thirdweb/dist/esm/utils/contract/fetchContractMetadata.js -> ../../storage/download.js",
     "files": []
@@ -559,6 +569,12 @@
     "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/fetch-proofs-for-claimers.js -> ../../../extensions/erc20/read/decimals.js",
     "files": []
   },
+  "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc1155/__generated__/IDropSinglePhase1155/read/claimCondition.js": {
+    "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc1155/__generated__/IDropSinglePhase1155/read/claimCondition.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_extensions_erc1155___generated___IDropSingl-6bd013.js"
+    ]
+  },
   "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc1155/drops/read/getActiveClaimCondition.js": {
     "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc1155/drops/read/getActiveClaimCondition.js",
     "files": [
@@ -569,6 +585,12 @@
     "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc20/drops/read/getActiveClaimCondition.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_extensions_erc20_drops_read_getActiveClaimC-b03e3b.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc721/__generated__/IDropSinglePhase/read/claimCondition.js": {
+    "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc721/__generated__/IDropSinglePhase/read/claimCondition.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_extensions_erc721___generated___IDropSingle-3c14fc.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-claim-params.js -> ../../../extensions/erc721/drops/read/getActiveClaimCondition.js": {
@@ -595,8 +617,16 @@
     "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc1155/__generated__/IDrop1155/write/setClaimConditions.js",
     "files": []
   },
+  "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc1155/__generated__/IDropSinglePhase1155/write/setClaimConditions.js": {
+    "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc1155/__generated__/IDropSinglePhase1155/write/setClaimConditions.js",
+    "files": []
+  },
   "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc721/__generated__/IDrop/write/setClaimConditions.js": {
     "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc721/__generated__/IDrop/write/setClaimConditions.js",
+    "files": []
+  },
+  "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc721/__generated__/IDropSinglePhase/write/setClaimConditions.js": {
+    "id": "../node_modules/thirdweb/dist/esm/utils/extensions/drops/get-multicall-set-claim-claim-conditon-transactions.js -> ../../../extensions/erc721/__generated__/IDropSinglePhase/write/setClaimConditions.js",
     "files": []
   },
   "../node_modules/thirdweb/dist/esm/utils/extensions/drops/hash-entry.js -> ../../../contract/contract.js": {
@@ -989,6 +1019,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/app.nicegram/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_app_nicegram_i-0b0f3f.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/app.nightly/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/app.nightly/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_app_nightly_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/app.nightly/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/app.nightly/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_app_nightly_index_js.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/app.omni/image.js": {
@@ -1495,6 +1537,18 @@
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_bee_index_js.js"
     ]
   },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.beexo/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.beexo/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_beexo_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.beexo/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.beexo/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_beexo_index_js.js"
+    ]
+  },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.bestwallet/image.js": {
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.bestwallet/image.js",
     "files": [
@@ -1613,6 +1667,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.blanqlabs.wallet/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_blanqlabs_-24c913.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.blazpay.wallet/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.blazpay.wallet/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_blazpay_wa-7cbf1a.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.blazpay.wallet/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.blazpay.wallet/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_blazpay_wa-24a61d.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.blockchain/image.js": {
@@ -1867,16 +1933,16 @@
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_cryptnox_i-ab4509.js"
     ]
   },
-  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto/image.js": {
-    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto/image.js",
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto.wallet/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto.wallet/image.js",
     "files": [
-      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_crypto_image_js.js"
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_crypto_wal-686537.js"
     ]
   },
-  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto/index.js": {
-    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto/index.js",
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto.wallet/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.crypto.wallet/index.js",
     "files": [
-      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_crypto_index_js.js"
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_crypto_wal-d054b4.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.cryptokara/image.js": {
@@ -1889,6 +1955,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.cryptokara/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_cryptokara-22f65d.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.daffione/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.daffione/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_daffione_i-7e36c1.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.daffione/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.daffione/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_daffione_i-de5484.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.dcentwallet/image.js": {
@@ -2141,6 +2219,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.icewal/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_icewal_index_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.ipmb/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.ipmb/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_ipmb_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.ipmb/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.ipmb/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_ipmb_index_js.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.itoken/image.js": {
@@ -2911,6 +3001,18 @@
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_walletconn-b489ae.js"
     ]
   },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.webauth/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.webauth/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_webauth_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.webauth/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.webauth/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_com_webauth_index_js.js"
+    ]
+  },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.wemix/image.js": {
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/com.wemix/image.js",
     "files": [
@@ -3197,6 +3299,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/id.competence/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_id_competence_-913f0a.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/id.plumaa/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/id.plumaa/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_id_plumaa_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/id.plumaa/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/id.plumaa/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_id_plumaa_index_js.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/im.token/image.js": {
@@ -3785,6 +3899,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/io.okse/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_io_okse_index_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/io.owallet/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/io.owallet/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_io_owallet_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/io.owallet/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/io.owallet/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_io_owallet_index_js.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/io.oxalus/image.js": {
@@ -4567,6 +4693,18 @@
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_network_trustk-d7bfda.js"
     ]
   },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/nl.greenhood.wallet/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/nl.greenhood.wallet/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_nl_greenhood_w-29924c.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/nl.greenhood.wallet/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/nl.greenhood.wallet/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_nl_greenhood_w-b2c24f.js"
+    ]
+  },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/one.metapro.wallet/image.js": {
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/one.metapro.wallet/image.js",
     "files": [
@@ -4699,18 +4837,6 @@
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_org_mugambo_index_js.js"
     ]
   },
-  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/org.nitrogen/image.js": {
-    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/org.nitrogen/image.js",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_org_nitrogen_i-532ef2.js"
-    ]
-  },
-  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/org.nitrogen/index.js": {
-    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/org.nitrogen/index.js",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_org_nitrogen_i-b6e92a.js"
-    ]
-  },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/org.talkapp/image.js": {
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/org.talkapp/image.js",
     "files": [
@@ -4841,6 +4967,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/so.onekey.app.wallet/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_so_onekey_app_-dd74d1.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/social.gm2/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/social.gm2/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_social_gm2_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/social.gm2/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/social.gm2/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_social_gm2_index_js.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/social.halo/image.js": {
@@ -4997,6 +5135,18 @@
     "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/world.qoin/index.js",
     "files": [
       "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_world_qoin_index_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/xyz.abs/image.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/xyz.abs/image.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_xyz_abs_image_js.js"
+    ]
+  },
+  "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/xyz.abs/index.js": {
+    "id": "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/xyz.abs/index.js",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets___generated___wallet_xyz_abs_index_js.js"
     ]
   },
   "../node_modules/thirdweb/dist/esm/wallets/__generated__/getWalletInfo.js -> ./wallet/xyz.argent/image.js": {
@@ -5171,9 +5321,7 @@
   },
   "../node_modules/thirdweb/dist/esm/wallets/create-wallet.js -> ./injected/index.js": {
     "id": "../node_modules/thirdweb/dist/esm/wallets/create-wallet.js -> ./injected/index.js",
-    "files": [
-      "static/chunks/_app-pages-browser_node_modules_thirdweb_dist_esm_wallets_injected_index_js.js"
-    ]
+    "files": []
   },
   "../node_modules/thirdweb/dist/esm/wallets/create-wallet.js -> ./injected/mipdStore.js": {
     "id": "../node_modules/thirdweb/dist/esm/wallets/create-wallet.js -> ./injected/mipdStore.js",

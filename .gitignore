@@ -1,1 +1,26 @@
-node_modules
+# Carpeta de node_modules
+node_modules/
+
+# Archivo de paquetes (package.json)
+package.json
+
+# Archivo de configuración de gitignore (gitignore.txt)
+.gitignore.txt
+
+# Archivos temporales de Node.js
+node_modules/.tmp/
+
+# Archivos de compresión (zip, rar, etc.)
+*.zip
+*.rar
+
+# Archivos de backup
+*.backup
+
+# Archivos de configuración de la terminal
+.*.bashrc
+.*.zshrc
+
+# Ignorar archivos de configuración de Next.js
+.next/
+next.json
