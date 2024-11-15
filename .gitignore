@@ -1,26 +1,41 @@
-# Carpeta de node_modules
+# Dependencias de Node.js
 node_modules/
 
-# Archivo de paquetes (package.json)
-package.json
+# Archivos y carpetas de Next.js
+.next/
+out/
 
-# Archivo de configuración de gitignore (gitignore.txt)
-.gitignore.txt
+# Configuración de npm/yarn/pnpm
+*.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Archivos temporales de Node.js
-node_modules/.tmp/
+# Configuración local de IDEs/editores
+.vscode/
+.idea/
 
-# Archivos de compresión (zip, rar, etc.)
+# Archivos de configuración del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración de Git
+.git/
+
+# Archivos de caché
+*.tmp
+*.cache
+
+# Archivos comprimidos y backups
 *.zip
 *.rar
-
-# Archivos de backup
+*.tar.gz
 *.backup
 
-# Archivos de configuración de la terminal
-.*.bashrc
-.*.zshrc
+# Configuración del entorno
+.env
+.env.*.local
 
-# Ignorar archivos de configuración de Next.js
-.next/
-next.json
+# Otros
+coverage/
+dist/
