@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Minus, Plus, Wallet, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { ThirdwebContract } from "thirdweb";
@@ -19,8 +17,7 @@ import {
 import { client } from "@/lib/thirdwebClient";
 import React from "react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { useSpring } from "react-spring";
+import { useSpring, animated } from "react-spring";
 import CountUp from "react-countup";
 import { claimTo } from "thirdweb/extensions/erc20";
 import { Button } from "@/components/ui/button";
@@ -79,13 +76,40 @@ function WalletButton() {
 
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
-    const [useCustomAddress, setUseCustomAddress] = useState(false);
-    const [customAddress, setCustomAddress] = useState("");
     const { theme } = useTheme();
     const account = useActiveAccount();
     const { mutate: sendTransaction, isPending } = useSendTransaction();
+    const [tokenBalance, setTokenBalance] = useState<string>("0");
 
-    const quantitySpring = useSpring({ number: quantity, from: { number: 0 } });
+    const updateBalance = async () => {
+        if (account && props.contract) {
+            try {
+                const response = await fetch(
+                    `https://api.thirdweb.com/v1/contract/${props.contract.address}/erc20/balance?wallet=${account.address}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_THIRDWEB_SECRET_KEY}`
+                        }
+                    }
+                );
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.result?.displayValue) {
+                        setTokenBalance(data.result.displayValue);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching balance:", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        updateBalance();
+        const interval = setInterval(updateBalance, 5000);
+        return () => clearInterval(interval);
+    }, [account, props.contract]);
 
     const decreaseQuantity = () => {
         setQuantity((prev) => Math.max(1, prev - 1));
@@ -98,7 +122,7 @@ export function TokenMint(props: Props) {
     const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = Number.parseInt(e.target.value);
         if (!Number.isNaN(value)) {
-            setQuantity(Math.min(Math.max(1, value)));
+            setQuantity(Math.max(1, value));
         }
     };
 
@@ -111,12 +135,15 @@ export function TokenMint(props: Props) {
         try {
             const transaction = claimTo({
                 contract: props.contract,
-                to: useCustomAddress && customAddress ? customAddress : account.address,
+                to: account.address,
                 quantity: String(quantity),
             });
 
             sendTransaction(transaction, {
-                onSuccess: () => toast.success("Tokens minted successfully!"),
+                onSuccess: () => {
+                    toast.success("Tokens minted successfully!");
+                    updateBalance();
+                },
                 onError: (error) => toast.error(error.message),
             });
         } catch (error) {
@@ -155,7 +182,7 @@ export function TokenMint(props: Props) {
 
                             <Input
                                 type="number"
-                                value={Math.round(quantitySpring.number.get())}
+                                value={quantity}
                                 onChange={handleQuantityChange}
                                 className="w-28 text-center rounded-none border-x-0 pl-6 border-zinc-800 bg-transparent"
                                 min="1"
@@ -174,34 +201,13 @@ export function TokenMint(props: Props) {
                         <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
                             Total: <CountUp end={props.pricePerToken * quantity} /> {props.currencySymbol}
                         </div>
-                    </div>
 
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Switch
-                            id="custom-address"
-                            checked={useCustomAddress}
-                            onCheckedChange={setUseCustomAddress}
-                        />
-                        <Label
-                            htmlFor="custom-address"
-                            className={`${useCustomAddress ? "text-zinc-100" : "text-zinc-400"} cursor-pointer`}
-                        >
-                            Mint to a custom address
-                        </Label>
+                        {account && (
+                            <div className="text-sm pr-1 text-zinc-400 mt-1">
+                                Tienes {parseFloat(tokenBalance).toFixed(2)} AGOD Tokens
+                            </div>
+                        )}
                     </div>
-
-                    {useCustomAddress && (
-                        <div className="w-full mb-4">
-                            <Input
-                                id="address-input"
-                                type="text"
-                                placeholder="Enter recipient address"
-                                value={customAddress}
-                                onChange={(e) => setCustomAddress(e.target.value)}
-                                className="w-full border-zinc-800 bg-transparent"
-                            />
-                        </div>
-                    )}
                 </CardContent>
 
                 <CardFooter className="flex flex-col items-center justify-center space-y-4">

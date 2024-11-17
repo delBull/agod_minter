@@ -24,6 +24,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <Toaster position="bottom-center" />
       <ThirdwebProvider
         activeChain={Sepolia}
+        supportedChains={[Sepolia]}
+        autoSwitch={true}
+        dAppMeta={{
+          name: "AGOD",
+          description: "AGOD Token Minter",
+          logoUrl: "/icon.png",
+          url: process.env.NEXT_PUBLIC_AUTH_DOMAIN || window.location.origin,
+          isDarkMode: true,
+        }}
         supportedWallets={[
           metamaskWallet(),
           coinbaseWallet(),
