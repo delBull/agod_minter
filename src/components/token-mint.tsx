@@ -37,21 +37,21 @@ type Props = {
 
 function StyledConnectButton() {
     return (
-            <div className="h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
-                <ConnectButton 
+        <div className="h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
+            <ConnectButton 
                 client={client}
                 connectModal={{
                     title: "Conéctate con AGOD",
                     titleIcon: "/icon.png",
                     size: "wide",
                     showThirdwebBranding: false,
-                    }}
+                }}
                 connectButton={{
                     label: "Inicia tu Conexión"
                 }}
-                locale="es_ES" 
-                />
-            </div>
+                locale="es_ES"
+            />
+        </div>
     );
 }
 
