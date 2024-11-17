@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Wallet, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { ThirdwebContract } from "thirdweb";
 import {
@@ -13,14 +13,17 @@ import {
     useActiveAccount,
     ConnectButton,
     useSendTransaction,
-    useReadContract,
+    useDisconnect,
+    useActiveWallet,
 } from "thirdweb/react";
 import { client } from "@/lib/thirdwebClient";
 import React from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { prepareContractCall } from "thirdweb";
+import { motion } from "framer-motion";
+import { useSpring } from "react-spring";
+import CountUp from "react-countup";
 import { claimTo } from "thirdweb/extensions/erc20";
+import { Button } from "@/components/ui/button";
 
 type Props = {
     contract: ThirdwebContract;
@@ -32,6 +35,48 @@ type Props = {
     isERC20: boolean;
 };
 
+function StyledConnectButton() {
+    return (
+            <div className="h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
+                <ConnectButton 
+                client={client}
+                connectModal={{
+                    title: "Conéctate con AGOD",
+                    titleIcon: "/icon.png",
+                    size: "wide",
+                    showThirdwebBranding: false,
+                    }}
+                connectButton={{
+                    label: "Inicia tu Conexión"
+                }}
+                locale="es_ES" 
+                />
+            </div>
+    );
+}
+
+function WalletButton() {
+    return (
+        <div>
+            <div className="h-10 flex items-center justify-center px-3 gap-2">
+                <ConnectButton 
+                    client={client}
+                    locale="es_ES"
+                    connectButton={{
+                        label: (
+                            <div className="flex items-center gap-2">
+                                <Wallet className="h-4 w-4" />
+                                <ChevronDown className="h-3 w-3" />
+                            </div>
+                        ),
+                        className: "h-full w-full p-0"
+                    }}
+                />
+            </div>
+        </div>
+    );
+}
+
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
     const [useCustomAddress, setUseCustomAddress] = useState(false);
@@ -39,6 +84,8 @@ export function TokenMint(props: Props) {
     const { theme } = useTheme();
     const account = useActiveAccount();
     const { mutate: sendTransaction, isPending } = useSendTransaction();
+
+    const quantitySpring = useSpring({ number: quantity, from: { number: 0 } });
 
     const decreaseQuantity = () => {
         setQuantity((prev) => Math.max(1, prev - 1));
@@ -84,57 +131,48 @@ export function TokenMint(props: Props) {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-            <Card className="w-full max-w-md">
-                <CardContent className="pt-6">
-                    <div className="aspect-square overflow-hidden rounded-lg mb-4 relative">
-                        <MediaRenderer
-                            client={client}
-                            className="w-full h-full object-cover"
-                            alt=""
-                            src={props.contractImage || "/placeholder.svg?height=400&width=400"}
-                        />
-                        <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-sm font-semibold">
-                            {props.pricePerToken} {props.currencySymbol}/each
-                        </div>
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2 dark:text-white">
+        <div className="flex flex-col items-center justify-center -mt-32">
+            <Card className="w-full max-w-xl p-8">
+                <CardContent className="flex flex-col items-center justify-center">
+                    <h2 className="text-2xl font-bold mb-2 text-zinc-100">
                         {props.displayName}
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    <p className="text-zinc-300 mb-8 text-center">
                         {props.description}
                     </p>
-                    <div className="flex items-center justify-between mb-4">
+
+                    <div className="flex flex-col items-center justify-center mb-4">
                         <div className="flex items-center">
                             <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={decreaseQuantity}
                                 disabled={quantity <= 1}
-                                aria-label="Decrease quantity"
-                                className="rounded-r-none"
+                                className="rounded-r-none border-zinc-800"
                             >
                                 <Minus className="h-4 w-4" />
                             </Button>
+
                             <Input
                                 type="number"
-                                value={quantity}
+                                value={Math.round(quantitySpring.number.get())}
                                 onChange={handleQuantityChange}
-                                className="w-28 text-center rounded-none border-x-0 pl-6"
+                                className="w-28 text-center rounded-none border-x-0 pl-6 border-zinc-800 bg-transparent"
                                 min="1"
                             />
+
                             <Button
                                 variant="outline"
                                 size="icon"
                                 onClick={increaseQuantity}
-                                aria-label="Increase quantity"
-                                className="rounded-l-none"
+                                className="rounded-l-none border-zinc-800"
                             >
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
-                        <div className="text-base pr-1 font-semibold dark:text-white">
-                            Total: {props.pricePerToken * quantity} {props.currencySymbol}
+
+                        <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
+                            Total: <CountUp end={props.pricePerToken * quantity} /> {props.currencySymbol}
                         </div>
                     </div>
 
@@ -146,36 +184,42 @@ export function TokenMint(props: Props) {
                         />
                         <Label
                             htmlFor="custom-address"
-                            className={`${useCustomAddress ? "" : "text-gray-400"} cursor-pointer`}
+                            className={`${useCustomAddress ? "text-zinc-100" : "text-zinc-400"} cursor-pointer`}
                         >
                             Mint to a custom address
                         </Label>
                     </div>
+
                     {useCustomAddress && (
-                        <div className="mb-4">
+                        <div className="w-full mb-4">
                             <Input
                                 id="address-input"
                                 type="text"
                                 placeholder="Enter recipient address"
                                 value={customAddress}
                                 onChange={(e) => setCustomAddress(e.target.value)}
-                                className="w-full"
+                                className="w-full border-zinc-800 bg-transparent"
                             />
                         </div>
                     )}
                 </CardContent>
-                <CardFooter>
+
+                <CardFooter className="flex flex-col items-center justify-center space-y-4">
                     {account ? (
-                        <Button
-                            className="w-full bg-black text-white hover:bg-black/90"
-                            onClick={handleMint}
-                            disabled={isPending}
-                        >
-                            {isPending ? "Minting..." : `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
-                        </Button>
+                        <div className="flex items-center gap-4 w-full">
+                            <Button
+                                variant="gradient"
+                                className="flex-1"
+                                onClick={handleMint}
+                                disabled={isPending}
+                            >
+                                {isPending ? "Minting..." : `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
+                            </Button>
+                            <WalletButton />
+                        </div>
                     ) : (
                         <div className="w-full">
-                            <ConnectButton client={client} />
+                            <StyledConnectButton />
                         </div>
                     )}
                 </CardFooter>
