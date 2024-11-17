@@ -34,20 +34,25 @@ type Props = {
 
 function StyledConnectButton() {
     return (
-        <div className="h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
-            <ConnectButton 
-                client={client}
-                connectModal={{
-                    title: "Conéctate con AGOD",
-                    titleIcon: "/icon.png",
-                    size: "wide",
-                    showThirdwebBranding: false,
-                }}
-                connectButton={{
-                    label: "Inicia tu Conexión"
-                }}
-                locale="es_ES"
-            />
+        <div className="relative mt-20 mb-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-50" />
+              <div className="w-96 h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
+                <div className="rounded-lg z-10">
+                    <ConnectButton 
+                        client={client}
+                        connectModal={{
+                            title: "Conéctate con AGOD",
+                            titleIcon: "/icon.png",
+                            size: "wide",
+                            showThirdwebBranding: false,
+                        }}
+                        connectButton={{
+                            label: "Inicia tu Conexión"
+                        }}
+                        locale="es_ES"
+                    />
+                </div>
+            </div>
         </div>
     );
 }
@@ -96,7 +101,6 @@ export function TokenMint(props: Props) {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.result?.displayValue) {
-                        // Convertir a número y redondear a entero
                         const balance = Math.floor(Number(data.result.displayValue));
                         setTokenBalance(balance);
                     }
@@ -107,7 +111,6 @@ export function TokenMint(props: Props) {
         }
     };
 
-    // Actualizar balance inmediatamente cuando se conecta la wallet o cambia el contrato
     useEffect(() => {
         if (account) {
             updateBalance();
@@ -116,7 +119,6 @@ export function TokenMint(props: Props) {
         }
     }, [account, props.contract]);
 
-    // Actualizar balance periódicamente mientras la wallet esté conectada
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
         
@@ -163,8 +165,7 @@ export function TokenMint(props: Props) {
             sendTransaction(transaction, {
                 onSuccess: () => {
                     toast.success("Tokens minted successfully!");
-                    // Actualizar balance después de un mint exitoso
-                    setTimeout(updateBalance, 2000); // Esperar 2 segundos para que la transacción se procese
+                    setTimeout(updateBalance, 2000);
                 },
                 onError: (error) => toast.error(error.message),
             });
@@ -179,9 +180,19 @@ export function TokenMint(props: Props) {
         return null;
     }
 
+    // Si no hay cuenta conectada, solo mostrar el botón de conexión
+    if (!account) {
+        return (
+            <div className="flex flex-col items-center justify-center -mt-32">
+                <StyledConnectButton />
+            </div>
+        );
+    }
+
+    // Mostrar la interfaz completa cuando hay una cuenta conectada
     return (
         <div className="flex flex-col items-center justify-center -mt-32">
-            <Card className="w-full max-w-xl p-8">
+            <Card className="w-full max-w-xl p-8 animate-fadeIn">
                 <CardContent className="flex flex-col items-center justify-center">
                     <h2 className="text-2xl font-bold mb-2 text-zinc-100">
                         {props.displayName}
@@ -224,32 +235,24 @@ export function TokenMint(props: Props) {
                             Total: <CountUp end={props.pricePerToken * quantity} /> {props.currencySymbol}
                         </div>
 
-                        {account && (
-                            <div className="text-sm pr-1 text-zinc-400 mt-1">
-                                Tienes {tokenBalance} AGOD Tokens
-                            </div>
-                        )}
+                        <div className="text-sm pr-1 text-zinc-400 mt-1">
+                            Tienes {tokenBalance} AGOD Tokens
+                        </div>
                     </div>
                 </CardContent>
 
                 <CardFooter className="flex flex-col items-center justify-center space-y-4">
-                    {account ? (
-                        <div className="flex items-center gap-4 w-full">
-                            <Button
-                                variant="gradient"
-                                className="flex-1"
-                                onClick={handleMint}
-                                disabled={isPending}
-                            >
-                                {isPending ? "Minting..." : `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
-                            </Button>
-                            <WalletButton />
-                        </div>
-                    ) : (
-                        <div className="w-full">
-                            <StyledConnectButton />
-                        </div>
-                    )}
+                    <div className="flex items-center gap-4 w-full">
+                        <Button
+                            variant="gradient"
+                            className="flex-1"
+                            onClick={handleMint}
+                            disabled={isPending}
+                        >
+                            {isPending ? "Minting..." : `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
+                        </Button>
+                        <WalletButton />
+                    </div>
                 </CardFooter>
             </Card>
         </div>

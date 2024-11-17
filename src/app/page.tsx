@@ -44,7 +44,8 @@ export default function Home() {
   }
 
   return (
-    <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto bg-zinc-950">
+    <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center bg-zinc-950">
+     <div className="max-w-screen-lg w-full mx-auto bg-zinc-950">
       <Head>
         <title>AGOD Token minter</title>
         <meta name="description" content="Mintea AGOD Token y abre la puerta al universo Blockchain" />
@@ -63,6 +64,7 @@ export default function Home() {
         />
         <ThirdwebResources />
       </div>
+     </div>
     </main>
   );
 }
