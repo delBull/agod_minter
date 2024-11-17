@@ -79,7 +79,7 @@ export function TokenMint(props: Props) {
     const { theme } = useTheme();
     const account = useActiveAccount();
     const { mutate: sendTransaction, isPending } = useSendTransaction();
-    const [tokenBalance, setTokenBalance] = useState<string>("0");
+    const [tokenBalance, setTokenBalance] = useState<number>(0);
 
     const updateBalance = async () => {
         if (account && props.contract) {
@@ -96,7 +96,9 @@ export function TokenMint(props: Props) {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.result?.displayValue) {
-                        setTokenBalance(data.result.displayValue);
+                        // Convertir a número y redondear a entero
+                        const balance = Math.floor(Number(data.result.displayValue));
+                        setTokenBalance(balance);
                     }
                 }
             } catch (error) {
@@ -105,10 +107,29 @@ export function TokenMint(props: Props) {
         }
     };
 
+    // Actualizar balance inmediatamente cuando se conecta la wallet o cambia el contrato
     useEffect(() => {
-        updateBalance();
-        const interval = setInterval(updateBalance, 5000);
-        return () => clearInterval(interval);
+        if (account) {
+            updateBalance();
+        } else {
+            setTokenBalance(0);
+        }
+    }, [account, props.contract]);
+
+    // Actualizar balance periódicamente mientras la wallet esté conectada
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+        
+        if (account) {
+            updateBalance();
+            intervalId = setInterval(updateBalance, 5000);
+        }
+
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
     }, [account, props.contract]);
 
     const decreaseQuantity = () => {
@@ -142,7 +163,8 @@ export function TokenMint(props: Props) {
             sendTransaction(transaction, {
                 onSuccess: () => {
                     toast.success("Tokens minted successfully!");
-                    updateBalance();
+                    // Actualizar balance después de un mint exitoso
+                    setTimeout(updateBalance, 2000); // Esperar 2 segundos para que la transacción se procese
                 },
                 onError: (error) => toast.error(error.message),
             });
@@ -204,7 +226,7 @@ export function TokenMint(props: Props) {
 
                         {account && (
                             <div className="text-sm pr-1 text-zinc-400 mt-1">
-                                Tienes {parseFloat(tokenBalance).toFixed(2)} AGOD Tokens
+                                Tienes {tokenBalance} AGOD Tokens
                             </div>
                         )}
                     </div>
