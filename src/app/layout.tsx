@@ -20,13 +20,13 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={inter.className}> 
         <QueryClientProvider client={queryClient}>
           <ThemeProvider attribute="class" defaultTheme="dark">
             <ThirdwebProvider>
               <ToastProvider>
                 <Toaster position="bottom-center" />
-                {children}
+                  {children}
               </ToastProvider>
             </ThirdwebProvider>
           </ThemeProvider>

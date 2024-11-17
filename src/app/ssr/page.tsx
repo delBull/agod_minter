@@ -23,46 +23,65 @@ export default async function Home() {
         client,
     });
 
-    // Verifica si el contrato es ERC20
-    const isERC20Query = await isERC20({ contract });
+    try {
+        // Verifica si el contrato es ERC20 usando la dirección del contrato
+        const isERC20Result = await isERC20([defaultTokenContractAddress]);
+        const isERC20Query = Array.isArray(isERC20Result) && isERC20Result.length > 0 
+            ? isERC20Result[0] 
+            : false;
 
-    const [contractMetadataQuery, claimCondition20] = await Promise.all([
-        getContractMetadata({ contract }),
-        getActiveClaimCondition20({ contract }),
-    ]);
+        const [contractMetadataQuery, claimCondition20] = await Promise.all([
+            getContractMetadata({ contract }),
+            getActiveClaimCondition20({ contract }),
+        ]);
 
-    const displayName = contractMetadataQuery.data?.name || "";
-    const description = contractMetadataQuery.data?.description || "";
+        const displayName = contractMetadataQuery.data?.name || "";
+        const description = contractMetadataQuery.data?.description || "";
 
-    const priceInWei = claimCondition20?.pricePerToken;
-    const currency = claimCondition20?.currency;
+        const priceInWei = claimCondition20?.pricePerToken;
+        const currency = claimCondition20?.currency;
 
-    const currencyMetadata = currency
-        ? await getCurrencyMetadata({
-              contract: getContract({
-                  address: currency || "",
-                  chain,
-                  client,
-              }),
-          })
-        : undefined;
+        let currencyMetadata;
+        if (currency) {
+            const currencyContract = getContract({
+                address: currency,
+                chain,
+                client,
+            });
+            currencyMetadata = await getCurrencyMetadata({ contract: currencyContract });
+        }
 
-    const currencySymbol = currencyMetadata?.symbol || "";
+        const currencySymbol = currencyMetadata?.symbol || "";
 
-    const pricePerToken =
-        currencyMetadata && priceInWei
+        // Ensure pricePerToken is always a number, defaulting to 0 if null
+        const pricePerToken = currencyMetadata && priceInWei
             ? Number(toTokens(priceInWei, currencyMetadata.decimals))
-            : null;
+            : 0;
 
-    return (
-        <TokenMint
-            contract={contract}
-            displayName={displayName}
-            contractImage={contractMetadataQuery.data?.image || ""}
-            description={description}
-            currencySymbol={currencySymbol}
-            pricePerToken={pricePerToken}
-            isERC20={isERC20Query} // Cambiado para utilizar el resultado de la verificación
-        />
-    );
+        return (
+            <TokenMint
+                contract={contract}
+                displayName={displayName}
+                contractImage={contractMetadataQuery.data?.image || ""}
+                description={description}
+                currencySymbol={currencySymbol}
+                pricePerToken={pricePerToken}
+                isERC20={isERC20Query}
+            />
+        );
+    } catch (error) {
+        console.error("Error loading contract data:", error);
+        // Return a minimal version of TokenMint with error state
+        return (
+            <TokenMint
+                contract={contract}
+                displayName="Error Loading Contract"
+                contractImage=""
+                description="There was an error loading the contract data. Please try again later."
+                currencySymbol=""
+                pricePerToken={0}
+                isERC20={false}
+            />
+        );
+    }
 }
