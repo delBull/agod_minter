@@ -35,6 +35,7 @@ Thumbs.db
 # Configuración del entorno
 .env
 .env.*.local
+.env.local
 
 # Otros
 coverage/

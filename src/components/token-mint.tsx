@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Minus, Plus, Wallet, ChevronDown } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { ThirdwebContract } from "thirdweb";
 import {
@@ -13,8 +13,13 @@ import {
     useSendTransaction,
     useDisconnect,
     useActiveWallet,
+    darkTheme 
 } from "thirdweb/react";
 import { client } from "@/lib/thirdwebClient";
+import {
+    inAppWallet,
+    createWallet,
+    } from "thirdweb/wallets";
 import React from "react";
 import { toast } from "sonner";
 import { useSpring, animated } from "react-spring";
@@ -32,48 +37,52 @@ type Props = {
     isERC20: boolean;
 };
 
+const wallets = [
+    inAppWallet({
+    auth: {
+    options: [
+    "google",
+    "apple",
+    "discord",
+    "email",
+    "facebook",
+    "passkey",
+    "phone",
+    ],
+    },
+    }),
+    createWallet("io.metamask"),
+    createWallet("com.coinbase.wallet"),
+    createWallet("io.rabby"),
+    createWallet("walletConnect"),
+    ];
+    
+
 function StyledConnectButton() {
     return (
         <div className="relative mt-20 mb-10">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-50" />
-              <div className="w-96 h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
+            <div className="w-96 h-1 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
                 <div className="rounded-lg z-10">
                     <ConnectButton 
                         client={client}
+                        wallets={wallets}
                         connectModal={{
                             title: "Conéctate con AGOD",
                             titleIcon: "/icon.png",
-                            size: "wide",
+                            size: "compact",
                             showThirdwebBranding: false,
                         }}
+                        theme={darkTheme({
+                            colors: { accentText: "hsl(358, 67%, 54%)" },
+                          })}
                         connectButton={{
-                            label: "Inicia tu Conexión"
+                            label: "Inicia tu Conexión",
+                            className: "bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
                         }}
                         locale="es_ES"
                     />
                 </div>
-            </div>
-        </div>
-    );
-}
-
-function WalletButton() {
-    return (
-        <div>
-            <div className="h-10 flex items-center justify-center px-3 gap-2">
-                <ConnectButton 
-                    client={client}
-                    locale="es_ES"
-                    connectButton={{
-                        label: (
-                            <div className="flex items-center gap-2">
-                                <Wallet className="h-4 w-4" />
-                                <ChevronDown className="h-3 w-3" />
-                            </div>
-                        ),
-                        className: "h-full w-full p-0"
-                    }}
-                />
             </div>
         </div>
     );
@@ -241,8 +250,8 @@ export function TokenMint(props: Props) {
                     </div>
                 </CardContent>
 
-                <CardFooter className="flex flex-col items-center justify-center space-y-4">
-                    <div className="flex items-center gap-4 w-full">
+                <CardFooter className="flex flex-col items-center justify-center">
+                    <div className="flex flex-col items-center justify-center w-full">
                         <Button
                             variant="gradient"
                             className="flex-1"
@@ -251,7 +260,7 @@ export function TokenMint(props: Props) {
                         >
                             {isPending ? "Minting..." : `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
                         </Button>
-                        <WalletButton />
+                        <StyledConnectButton />
                     </div>
                 </CardFooter>
             </Card>
