@@ -14,39 +14,44 @@ const contractAddress = "0xc655e27d77b7a921e45c603f4d0a474bdeedb42b";
 
 function Header(): JSX.Element {
   return (
-    <Vortex
-      backgroundColor="transparent"
-      baseHue={280}
-      baseSpeed={0.5}
-      rangeSpeed={1.0}
-      particleCount={500}
-      className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full"
-    >
-      <Image
-        src="/icon.png"
-        height={150}
-        width={150}
-        alt=""
-        className="size-[150px] md:size-[150px] md:block"
-        style={{
-          filter: "drop-shadow(0px 0px 24px #a726a9a8)",
-        }}
-      />
+    <div className="relative w-full md:h-auto h-[300px]">
+      <div className="absolute inset-0 md:opacity-100 opacity-50">
+        <Vortex
+          backgroundColor="transparent"
+          baseHue={280}
+          baseSpeed={0.5}
+          rangeSpeed={1.0}
+          particleCount={500}
+          className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full h-full"
+        />
+      </div>
+      <div className="relative z-10 flex flex-col items-center justify-center py-8">
+        <Image
+          src="/icon.png"
+          height={150}
+          width={150}
+          alt=""
+          className="size-[150px] md:size-[150px] md:block"
+          style={{
+            filter: "drop-shadow(0px 0px 24px #a726a9a8)",
+          }}
+        />
 
-      <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-6 text-zinc-100">
-        AGOD Token
-        <span className="text-zinc-300 inline-block mx-1"> · </span>
-        <span className="inline-block -skew-x-6 text-red-500"> Minter </span>
-      </h1>
+        <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-6 text-zinc-100">
+          AGOD Token
+          <span className="text-zinc-300 inline-block mx-1"> · </span>
+          <span className="inline-block -skew-x-6 text-red-500"> Minter </span>
+        </h1>
 
-      <p className="text-zinc-300 text-base">
-        Abre la puerta al{" "}
-        <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
-          UNIVERSO
-        </code>{" "}
-        Blockchain.
-      </p>
-    </Vortex>
+        <p className="text-zinc-300 text-base">
+          Abre la puerta al{" "}
+          <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
+            UNIVERSO
+          </code>{" "}
+          Blockchain.
+        </p>
+      </div>
+    </div>
   );
 }
 
