@@ -57,7 +57,6 @@ function StyledConnectButton() {
                     "discord",
                     "email",
                     "facebook",
-                    "passkey",
                     "phone",
                 ],
             },
