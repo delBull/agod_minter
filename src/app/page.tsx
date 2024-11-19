@@ -8,12 +8,20 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { EcosystemResources } from "@/components/ecosystem-resources";
+import { Vortex } from "@/components/ui/vortex";
 
 const contractAddress = "0xc655e27d77b7a921e45c603f4d0a474bdeedb42b";
 
 function Header(): JSX.Element {
   return (
-    <header className="flex flex-col items-center">
+    <Vortex
+      backgroundColor="transparent"
+      baseHue={280}
+      baseSpeed={0.5}
+      rangeSpeed={1.0}
+      particleCount={500}
+      className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full"
+    >
       <Image
         src="/icon.png"
         height={150}
@@ -38,7 +46,7 @@ function Header(): JSX.Element {
         </code>{" "}
         Blockchain.
       </p>
-    </header>
+    </Vortex>
   );
 }
 
