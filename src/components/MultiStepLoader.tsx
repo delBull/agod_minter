@@ -37,7 +37,7 @@ export function MultiStepLoaderDemo({ isOpen, onClose }: MultiStepLoaderProps) {
               <Loader 
                 loadingStates={loadingStates} 
                 loading={true} 
-                duration={3000}
+                duration={2000}
               />
             </div>
           </div>

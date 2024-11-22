@@ -87,3 +87,15 @@
 .text-gradient {
   @apply bg-gradient-to-r from-red-500 to-pink-600 text-transparent bg-clip-text inline-block;
 }
+
+[data-rich-colors=true][data-sonner-toast][data-type=info], [data-rich-colors=true][data-sonner-toast][data-type=info]  {
+    background-image: linear-gradient(to right, #6b46c1, #d53f8c) !important;
+    border: none !important;
+    color: var(--success-text) !important;
+}
+
+[data-close-button] {
+    background: var(--success-bg) !important;
+    border-color: var(--success-border) !important;
+    color: var(--success-text) !important;
+}

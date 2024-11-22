@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { EcosystemResources } from "@/components/ecosystem-resources";
 import { Vortex } from "@/components/ui/vortex";
+import { AlertTriangle } from "lucide-react";
 
 const contractAddress = "0xc655e27d77b7a921e45c603f4d0a474bdeedb42b";
 
@@ -60,6 +61,21 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Show safety alert on page load
+    setTimeout(() => {
+      toast.info(
+        <div className="flex text-white font-mono items-center gap-2 rounded-lg p-[1px]">
+          <AlertTriangle className="h-5 w-5 text-white shrink-0" />
+          <span>Alerta: ¡Siempre verifica que estés en minter.agodecosystem.com!</span>
+        </div>,
+        {
+          duration: 4000,
+          position: "top-center",
+          className: "",
+        }
+      );
+    }, 500);
+
     const initContract = async () => {
       try {
         console.log("Initializing contract on chain:", sepoliaChain.name);
