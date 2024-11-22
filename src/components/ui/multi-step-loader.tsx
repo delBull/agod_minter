@@ -62,22 +62,22 @@ const LoaderCore = ({
           >
             <div>
               {index > value && (
-                <CheckIcon className="text-black dark:text-white" />
+                <CheckIcon className="text-white dark:text-white" />
               )}
               {index <= value && (
                 <CheckFilled
                   className={cn(
-                    "text-black dark:text-white",
+                    "text-white dark:text-white",
                     value === index &&
-                      "text-black dark:text-lime-500 opacity-100"
+                      "text-red-500 dark:text-lime-500 opacity-100"
                   )}
                 />
               )}
             </div>
             <span
               className={cn(
-                "text-black dark:text-white",
-                value === index && "text-black dark:text-lime-500 opacity-100"
+                "text-white dark:text-white",
+                value === index && "text-gradient dark:text-lime-500 opacity-100"
               )}
             >
               {loadingState.text}
@@ -88,6 +88,8 @@ const LoaderCore = ({
     </div>
   );
 };
+
+// ... (código anterior sin cambios hasta el return del MultiStepLoader)
 
 export const MultiStepLoader = ({
   loadingStates,
@@ -119,6 +121,7 @@ export const MultiStepLoader = ({
 
     return () => clearTimeout(timeout);
   }, [currentState, loading, loop, loadingStates.length, duration]);
+  
   return (
     <AnimatePresence mode="wait">
       {loading && (
@@ -132,13 +135,39 @@ export const MultiStepLoader = ({
           exit={{
             opacity: 0,
           }}
-          className="w-full h-full fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl"
+          className="w-full h-full fixed inset-0 z-[100] flex flex-col items-center justify-center backdrop-blur-2xl"
         >
-          <div className="h-96  relative">
+          <div className="h-96 relative mt-40">
             <LoaderCore value={currentState} loadingStates={loadingStates} />
           </div>
 
-          <div className="bg-gradient-to-t inset-x-0 z-20 bottom-0 bg-white dark:bg-black h-full absolute [mask-image:radial-gradient(900px_at_center,transparent_30%,white)]" />
+          <div className="bg-gradient-to-t inset-x-0 z-20 bottom-0 bg-black dark:bg-black h-full absolute [mask-image:radial-gradient(900px_at_center,transparent_30%,black)]" />
+          
+          {/* Sección de Consejos */}
+          <div className="w-full bg-black/50 backdrop-blur-sm border-t border-white/10 mt-auto">
+            <div className="max-w-4xl mx-auto px-8 py-6">
+              <h4 className="text-gradient text-lg font-bold mb-3 flex items-center gap-2">
+                <span>🔑</span> Consejos Importantes
+              </h4>
+              <ul className="space-y-2 text-sm text-gray-300">
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-red-500">Seguridad:</span>
+                  Nunca compartas tu seed phrase. Si alguien tiene acceso a ella, puede robar todos tus fondos.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-red-500">Redes:</span>
+                  Asegúrate de estar en la red correcta antes de realizar cualquier transacción.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-bold text-red-500">Gas Fees:</span>
+                  Ten en cuenta que las transacciones en la blockchain requieren tarifas de gas.
+                </li>
+                <li className="flex items-start gap-2">
+                  así que asegúrate de tener suficiente saldo en la moneda nativa (por ejemplo, FTM en Fantom).
+                </li>
+              </ul>
+            </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

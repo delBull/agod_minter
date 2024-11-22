@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "sonner";
+import { Footer } from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,12 +18,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="bg-black">
+      <body className={`${inter.className} bg-black`}>
         <Providers>
-          <main className="min-h-screen bg-black">
-            {children}
-          </main>
+          <div className="relative h-screen bg-black overflow-hidden">
+            <div className="h-full p-4 md:p-8 max-w-7xl mx-auto w-full">
+              <main>
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </div>
           <Toaster 
             position="top-right"
             theme="dark"

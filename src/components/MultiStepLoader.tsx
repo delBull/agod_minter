@@ -1,23 +1,23 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { MultiStepLoader as Loader } from "./ui/multi-step-loader";
 import { IconSquareRoundedX } from "@tabler/icons-react";
 
 const loadingStates = [
   {
-    text: "Preparando tu experiencia Web3",
+    text: "Crear una Wallet Digital",
   },
   {
-    text: "Configurando tu cartera digital",
+    text: "Conecta tu Wallet a la red Compatible",
   },
   {
-    text: "Estableciendo conexiones seguras",
+    text: "Accede al AGOD Token Minter",
   },
   {
-    text: "Verificando la red blockchain",
+    text: "Mintea el AGOD Token",
   },
   {
-    text: "Casi listo para comenzar",
+    text: "Verifica el Minteo",
   },
 ];
 
@@ -28,21 +28,28 @@ interface MultiStepLoaderProps {
 
 export function MultiStepLoaderDemo({ isOpen, onClose }: MultiStepLoaderProps) {
   return (
-    <>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full h-[60vh] flex items-center justify-center">
-            <Loader loadingStates={loadingStates} loading={isOpen} duration={2000} />
-            
-            <button
-              className="fixed top-4 right-4 text-white z-[120]"
-              onClick={onClose}
-            >
-              <IconSquareRoundedX className="h-10 w-10" />
-            </button>
+    <div className="fixed inset-0 z-[100] bg-black">
+      <div className="absolute inset-0 flex flex-col">
+        {/* Contenedor principal */}
+        <div className="relative flex-1 flex items-center justify-center">
+          <div className="w-full max-w-2xl">
+            <div className="multi-step-loader">
+              <Loader 
+                loadingStates={loadingStates} 
+                loading={true} 
+                duration={3000}
+              />
+            </div>
           </div>
         </div>
-      )}
-    </>
+        {/* Botón de Cerrar */}
+        <button
+          className="absolute top-4 right-4 text-white z-[120]"
+          onClick={onClose}
+        >
+          <IconSquareRoundedX className="h-10 w-10" />
+        </button>
+      </div>
+    </div>
   );
-} 
+}

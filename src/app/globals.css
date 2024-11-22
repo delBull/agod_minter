@@ -76,10 +76,14 @@
 
 
 .bg-zinc-950 {
-  --tw-bg-opacity: 2;
+  --tw-bg-opacity: 0;
   /* background-color: rgb(9 9 11 / var(--tw-bg-opacity, 1)); */
 }
 
 .css-lmaoyj {
   display: none !important;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-red-500 to-pink-600 text-transparent bg-clip-text inline-block;
 }
