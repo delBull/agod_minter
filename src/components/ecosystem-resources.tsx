@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
 
 interface ArticleCardProps {
   title: string;
@@ -13,13 +14,20 @@ function ArticleCard({ title, href, description }: ArticleCardProps): JSX.Elemen
     <motion.a
       href={`${href}?utm_source=next-template`}
       target="_blank"
-      className="flex flex-col border border-zinc-800 p-4 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-700"
+      className="relative flex flex-col border border-zinc-800 p-4 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-700"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
+      <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-zinc-400" />
+      <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-zinc-400" />
+      <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-zinc-400" />
+      <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-zinc-400" />
+
       <article>
-        <h2 className="text-lg font-semibold mb-2 text-zinc-100">{title}</h2>
+        <div className="mb-2">
+          <EvervaultCard text={title} />
+        </div>
         <p className="text-sm text-zinc-400">{description}</p>
       </article>
     </motion.a>
@@ -28,42 +36,26 @@ function ArticleCard({ title, href, description }: ArticleCardProps): JSX.Elemen
 
 export function EcosystemResources(): JSX.Element {
   const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleClick = () => {
+    setIsVisible(!isVisible);
+    if (!isVisible) {
+      setTimeout(() => {
+        containerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+    }
+  };
 
   return (
-    <div className="relative">
-      {/* Resources Grid */}
-      <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="grid gap-4 lg:grid-cols-3 justify-center mb-24"
-          >
-            <ArticleCard
-              title="Pandora's Foundation"
-              href="https://pandoras.foundation"
-              description="Un mundo nuevo, tokenización de RWA"
-            />
-            <ArticleCard
-              title="AGOD Ecosystem"
-              href="https://agodecosystem.com"
-              description="La descripción"
-            />
-            <ArticleCard
-              title="Harmony Ark Foundation"
-              href="https://harmonyearth.me"
-              description="La descripción."
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Fixed Button at Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-5 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent h-20">
+    <div className="relative" ref={containerRef}>
+      {/* Botón en la parte superior */}
+      <div className="flex justify-center mb-8">
         <motion.button
-          onClick={() => setIsVisible(!isVisible)}
+          onClick={handleClick}
           className="flex items-center gap-2 px-6 py-3 rounded-lg bg-transparent text-sm text-white font-mono hover:opacity-90 transition-opacity relative group"
           style={{
             border: '0.5px solid transparent',
@@ -87,13 +79,41 @@ export function EcosystemResources(): JSX.Element {
             className="group-hover:animate-bounce"
           >
             {isVisible ? (
-              <ChevronDown className="w-4 h-4 text-white" />
-            ) : (
               <ChevronUp className="w-4 h-4 text-white" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-white" />
             )}
           </motion.div>
         </motion.button>
       </div>
+
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="grid gap-4 lg:grid-cols-3 justify-center mb-24"
+          >
+            <ArticleCard
+              title="Pandora's Foundation"
+              href="https://pandoras.foundation"
+              description="Innovamos con la tokenización de activos reales (RWA), conectando ideas visionarias con inversores globales. Pandora's Foundation hace tangible el futuro de las inversiones."
+            />
+            <ArticleCard
+              title="AGOD Ecosystem"
+              href="https://agodecosystem.com"
+              description="Donde blockchain y AI convergen para transformar la economía digital. AGOD Ecosystem te conecta con un mundo descentralizado lleno de oportunidades."
+            />
+            <ArticleCard
+              title="Harmony Ark Foundation"
+              href="https://harmonyearth.me"
+              description="Impulsamos el impacto social con tecnología Help to Earn. En HAF, cada acción cuenta para construir un mundo más solidario."
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
