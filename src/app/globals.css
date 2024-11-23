@@ -99,3 +99,8 @@
     border-color: var(--success-border) !important;
     color: var(--success-text) !important;
 }
+
+.grecaptcha-badge {
+    visibility: hidden !important;
+    opacity: 0 !important;
+}

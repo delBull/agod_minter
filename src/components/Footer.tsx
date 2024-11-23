@@ -18,7 +18,7 @@ export function Footer() {
               onClick={() => setIsLoaderOpen(true)}
               className="text-xs md:text-sm text-muted-foreground text-slate-300 hover:text-slate-200 transition-colors"
             >
-              ¿Nuevo en Carteras?
+              ¿Nuevo en Wallets?
             </button>
           </div>
         </div>

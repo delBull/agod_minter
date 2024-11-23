@@ -30,6 +30,7 @@ import { claimTo } from "thirdweb/extensions/erc20";
 import { Button } from "@/components/ui/button";
 import { sepoliaChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
+import { useReCaptcha } from "../hooks/use-recaptcha";
 
 // Enhanced toast styles with consistent gradient and styling
 const enhancedToastStyle = {
@@ -138,6 +139,7 @@ export function TokenMint(props: Props) {
     const [isChangingChain, setIsChangingChain] = useState(false);
     const [transactionStep, setTransactionStep] = useState(-1);
     const [showTransactionStatus, setShowTransactionStatus] = useState(false);
+    const { verifyHuman } = useReCaptcha();
 
     const updateBalance = async () => {
         if (account && props.contract) {
@@ -249,6 +251,13 @@ export function TokenMint(props: Props) {
         }
 
         try {
+            // Verify human interaction first
+            const token = await verifyHuman();
+            if (!token) {
+                showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
+                return;
+            }
+
             setShowTransactionStatus(true);
             setTransactionStep(0);
 

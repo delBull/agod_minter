@@ -3,6 +3,7 @@
 import { ThirdwebProvider } from "thirdweb/react";
 import { sepoliaChain } from "@/lib/chains";
 import { useEffect } from "react";
+import { ReCaptchaProvider } from "./recaptcha-provider";
 
 function ConnectionLogger({ children }: { children: React.ReactNode }) {
     useEffect(() => {
@@ -56,10 +57,12 @@ function ConnectionLogger({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <ThirdwebProvider>
-            <ConnectionLogger>
-                {children}
-            </ConnectionLogger>
-        </ThirdwebProvider>
+        <ReCaptchaProvider>
+            <ThirdwebProvider>
+                <ConnectionLogger>
+                    {children}
+                </ConnectionLogger>
+            </ThirdwebProvider>
+        </ReCaptchaProvider>
     );
 }
