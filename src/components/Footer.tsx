@@ -8,18 +8,27 @@ export function Footer() {
   return (
     <>
       <footer className="absolute bottom-0 left-0 right-0 py-4 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <p className="text-[10px] md:text-xs text-muted-foreground text-slate-200">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+          <p className="text-[10px] md:text-xs text-muted-foreground text-slate-200 text-center md:text-left whitespace-nowrap">
             AGOD Ecosystem es una marca ® de MXHUB Ecosistema Blockchain S.A. de C.V
           </p>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center justify-center md:justify-end">
             <button
               onClick={() => setIsLoaderOpen(true)}
               className="text-xs md:text-sm text-muted-foreground text-slate-300 hover:text-slate-200 transition-colors"
             >
               ¿Nuevo en Wallets?
             </button>
+            <span className="text-slate-500">|</span>
+            <a
+              href="https://agodecosystem.com/politica-privacidad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs md:text-sm text-muted-foreground text-slate-300 hover:text-slate-200 transition-colors"
+            >
+              Privacidad
+            </a>
           </div>
         </div>
       </footer>
