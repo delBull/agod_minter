@@ -57,8 +57,8 @@ export const EvervaultCard = ({
           randomString={randomString}
         />
         <div className="relative z-10 flex items-center justify-center">
-          <div className="relative h-36 w-36 flex items-center justify-center text-white"> {/* Cambiado a cuadrado para círculo perfecto */}
-            <div className="absolute w-full h-full bg-black/60 opacity-60 rounded-full border-none backdrop-blur-sm" /> {/* Aumentada la opacidad */}
+          <div className="relative h-36 w-36 flex items-center justify-center text-white">
+            <div className="absolute w-full h-full bg-black/60 opacity-60 rounded-full border-none backdrop-blur-sm" />
             <span className="text-sm font-black tracking-wider text-white z-20 uppercase text-center px-1">
               {formatText(text)}
             </span>

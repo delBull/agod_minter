@@ -2,6 +2,7 @@
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const CheckIcon = ({ className }: { className?: string }) => {
   return (
@@ -137,19 +138,23 @@ export const MultiStepLoader = ({
           }}
           className="w-full h-full fixed inset-0 z-[100] flex flex-col items-center justify-center backdrop-blur-2xl"
         >
-          <div className="h-96 relative mt-40">
+          <div className="h-96 relative mt-20 md:mt-40">
             <LoaderCore value={currentState} loadingStates={loadingStates} />
           </div>
-
           <div className="bg-gradient-to-t inset-x-0 z-20 bottom-0 bg-black dark:bg-black h-full absolute [mask-image:radial-gradient(900px_at_center,transparent_30%,black)]" />
-          
           {/* Sección de Consejos */}
+          <Link 
+                href="https://agodecosystem.com/blog/walletsweb3"
+                target="_blank"
+                className="flex justify-center text-center relative text-xs md:text-sm text-muted-foreground text-slate-300 hover:text-slate-200 transition-colors z-[100] mt-10">
+                ¿Quieres saber más de Wallets web3?
+              </Link>
           <div className="w-full bg-black/50 backdrop-blur-sm border-t border-white/10 mt-auto">
-            <div className="max-w-4xl mx-auto px-8 py-6">
+            <div className="max-w-4xl mx-auto px-8 py-6 mb-10">
               <h4 className="text-gradient text-lg font-bold mb-3 flex items-center gap-2">
                 <span>🔑</span> Consejos Importantes
               </h4>
-              <ul className="space-y-2 text-sm text-gray-300">
+              <ul className="space-y-2 text-xs md:text-sm text-gray-300">
                 <li className="flex items-start gap-2">
                   <span className="font-bold text-red-500">Seguridad:</span>
                   Nunca compartas tu seed phrase. Si alguien tiene acceso a ella, puede robar todos tus fondos.

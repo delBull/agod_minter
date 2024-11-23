@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
-import { Footer } from "@/components/Footer";
+import { EvervaultCard, Icon } from "./ui/evervault-card";
+import { Footer } from "./Footer";
 
 interface ArticleCardProps {
   title: string;
@@ -25,8 +25,8 @@ function ArticleCard({ title, href, description }: ArticleCardProps): JSX.Elemen
       <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-zinc-400" />
       <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-zinc-400" />
 
-      <article>
-        <div className="mb-2">
+      <article className="flex flex-col gap-4">
+        <div className="h-[200px] md:h-[250px] lg:h-[300px]">
           <EvervaultCard text={title} />
         </div>
         <p className="text-sm text-zinc-400">{description}</p>
@@ -52,12 +52,12 @@ export function EcosystemResources(): JSX.Element {
   };
 
   return (
-    <div className="relative" ref={containerRef}>
-      {/* Botón en la parte superior */}
-      <div className="flex justify-center mb-8">
+    <div className="relative pb-16" ref={containerRef}>
+      {/* Botón en la parte superior con fondo semi-transparente */}
+      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-sm py-4">
         <motion.button
           onClick={handleClick}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-transparent text-sm text-white font-mono hover:opacity-90 transition-opacity relative group"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-transparent text-sm text-white font-mono hover:opacity-90 transition-opacity relative group mx-auto"
           style={{
             border: '0.5px solid transparent',
             borderRadius: '0.5rem',
@@ -95,28 +95,30 @@ export function EcosystemResources(): JSX.Element {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="grid gap-4 lg:grid-cols-3 justify-center mb-12"
+            className="px-4 py-8 overflow-y-auto"
           >
-            <ArticleCard
-              title="Pandora's Foundation"
-              href="https://pandoras.foundation"
-              description="Innovamos con la tokenización de activos reales (RWA), conectando ideas visionarias con inversores globales. Pandora's Foundation hace tangible el futuro de las inversiones."
-            />
-            <ArticleCard
-              title="AGOD Ecosystem"
-              href="https://agodecosystem.com"
-              description="Donde blockchain y AI convergen para transformar la economía digital. AGOD Ecosystem te conecta con un mundo descentralizado lleno de oportunidades."
-            />
-            <ArticleCard
-              title="Harmony Ark Foundation"
-              href="https://harmonyearth.me"
-              description="Impulsamos el impacto social con tecnología Help to Earn. En HAF, cada acción cuenta para construir un mundo más solidario."
-            />
+            <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
+              <ArticleCard
+                title="Pandora's Foundation"
+                href="https://pandoras.foundation"
+                description="Innovamos con la tokenización de activos reales (RWA), conectando ideas visionarias con inversores globales. Pandora's Foundation hace tangible el futuro de las inversiones."
+              />
+              <ArticleCard
+                title="AGOD Ecosystem"
+                href="https://agodecosystem.com"
+                description="Donde blockchain y AI convergen para transformar la economía digital. AGOD Ecosystem te conecta con un mundo descentralizado lleno de oportunidades."
+              />
+              <ArticleCard
+                title="Harmony Ark Foundation"
+                href="https://harmonyearth.me"
+                description="Impulsamos el impacto social con tecnología Help to Earn. En HAF, cada acción cuenta para construir un mundo más solidario."
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-      
-      <div className={`absolute w-full mt-auto pt-16 ${isVisible ? 'mt-8' : 'mt-16'}`}>
+
+      <div className={`w-full ${isVisible ? 'mt-8' : 'mt-16'}`}>
         <Footer />
       </div>
     </div>
