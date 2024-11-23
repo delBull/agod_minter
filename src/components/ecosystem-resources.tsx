@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { EvervaultCard, Icon } from "@/components/ui/evervault-card";
+import { Footer } from "@/components/Footer";
 
 interface ArticleCardProps {
   title: string;
@@ -94,7 +95,7 @@ export function EcosystemResources(): JSX.Element {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="grid gap-4 lg:grid-cols-3 justify-center mb-24"
+            className="grid gap-4 lg:grid-cols-3 justify-center mb-12"
           >
             <ArticleCard
               title="Pandora's Foundation"
@@ -114,6 +115,10 @@ export function EcosystemResources(): JSX.Element {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <div className={`absolute w-full mt-auto pt-16 ${isVisible ? 'mt-8' : 'mt-16'}`}>
+        <Footer />
+      </div>
     </div>
   );
 }

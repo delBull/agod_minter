@@ -117,9 +117,9 @@ export default function Home() {
   }
 
   return (
-    <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center bg-zinc-950">
+    <main className="p-4 pb-24 md:pb-10 max-h-screen flex items-center justify-center bg-zinc-950">
       <div className="max-w-screen-lg w-full mx-auto bg-zinc-950">
-        <div className="py-20 w-full space-y-12">
+        <div className="py-10 md:py-20 w-full space-y-12">
           <Header />
           <TokenMint
             contract={contract}
@@ -131,6 +131,7 @@ export default function Home() {
             isERC20={true}
           />
           <EcosystemResources />
+          
         </div>
       </div>
     </main>

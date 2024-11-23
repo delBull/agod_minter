@@ -21,15 +21,14 @@ export default function RootLayout({
     <html lang="en" className="bg-black">
       <body className={`${inter.className} bg-black`}>
         <Providers>
-          <div className="relative h-screen bg-black overflow-hidden">
-            <div className="h-full p-4 md:p-8 max-w-7xl mx-auto w-full">
+          <div className="min-h-screen bg-black relative flex flex-col">
+            <div className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
               <main>
                 {children}
               </main>
-              <Footer />
             </div>
           </div>
-          <Toaster 
+          <Toaster  
             position="top-right"
             theme="dark"
             closeButton

@@ -7,16 +7,16 @@ export function Footer() {
 
   return (
     <>
-      <footer className="absolute bottom-0 left-0 right-0 py-4 px-8">
+      <footer className="absolute bottom-0 left-0 right-0 py-4 px-4 md:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <p className="text-xs text-muted-foreground text-slate-200">
+          <p className="text-[10px] md:text-xs text-muted-foreground text-slate-200">
             AGOD Ecosystem es una marca ® de MXHUB Ecosistema Blockchain S.A. de C.V
           </p>
 
           <div className="flex gap-4">
             <button
               onClick={() => setIsLoaderOpen(true)}
-              className="text-sm text-muted-foreground text-slate-300 hover:text-slate-200 transition-colors"
+              className="text-xs md:text-sm text-muted-foreground text-slate-300 hover:text-slate-200 transition-colors"
             >
               ¿Nuevo en Carteras?
             </button>
