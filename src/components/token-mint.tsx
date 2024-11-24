@@ -7,14 +7,11 @@ import { Minus, Plus } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { ThirdwebContract } from "thirdweb";
 import {
-    MediaRenderer,
     useActiveAccount,
     ConnectButton,
     useSendTransaction,
-    useDisconnect,
     useActiveWallet,
     darkTheme,
-    useConnect,
     useSwitchActiveWalletChain,
     useActiveWalletChain
 } from "thirdweb/react";
@@ -28,7 +25,7 @@ import { useSpring, animated } from "react-spring";
 import CountUp from "react-countup";
 import { claimTo } from "thirdweb/extensions/erc20";
 import { Button } from "@/components/ui/button";
-import { sepoliaChain } from "@/lib/chains";
+import { fantomChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
 
@@ -147,7 +144,7 @@ export function TokenMint(props: Props) {
                 const contract = getContract({
                     client,
                     address: props.contract.address,
-                    chain: sepoliaChain
+                    chain: fantomChain
                 });
 
                 const balance = await balanceOf({
@@ -190,37 +187,38 @@ export function TokenMint(props: Props) {
     }, [account, props.contract]);
 
     useEffect(() => {
+        let isHandlingSwitch = false;
         const handleChainSwitch = async () => {
-            if (!activeWallet || !account || isChangingChain) return;
+            if (!activeWallet || !account || isChangingChain || isHandlingSwitch) return;
 
             try {
-                console.log("%cChecking Chain", "color: blue; font-weight: bold;");
-                console.log("  Current Chain ID:", currentChain?.id);
-                console.log("  Target Chain ID:", sepoliaChain.id);
-
-                if (!currentChain || currentChain.id !== sepoliaChain.id) {
-                    console.log("%cSwitching Chain", "color: orange; font-weight: bold;");
-                    console.log("  From:", currentChain?.name || "unknown");
-                    console.log("  To:", sepoliaChain.name);
-                    
+                if (!currentChain || currentChain.id !== fantomChain.id) {
+                    isHandlingSwitch = true;
                     setIsChangingChain(true);
-                    await switchChain(sepoliaChain);
-                    
-                    console.log("%cChain Switch Success", "color: green; font-weight: bold;");
-                    showToast("¡Red cambiada exitosamente a Sepolia!");
-                } else {
-                    console.log("%cAlready on correct chain", "color: green; font-weight: bold;");
+                    await switchChain(fantomChain);
+                    showToast("¡Red cambiada exitosamente a Fantom Opera!");
                 }
             } catch (error) {
-                console.error("%cChain Switch Error", "color: red; font-weight: bold;", error);
+                console.error("%cError switching chain", "color: red; font-weight: bold;", error);
                 showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
             } finally {
                 setIsChangingChain(false);
+                isHandlingSwitch = false;
             }
         };
 
+        // Debounce para evitar múltiples llamadas
+        const timeoutId = setTimeout(() => {
         handleChainSwitch();
-    }, [activeWallet, account, currentChain, switchChain, isChangingChain]);
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+     }, [activeWallet, account, currentChain, switchChain]);
+        
+     if (isChangingChain) {
+        showToast("Cambio de red en proceso, por favor espera...", "error");
+        return;
+    }
 
     const decreaseQuantity = () => {
         setQuantity((prev) => Math.max(1, prev - 1));
@@ -266,10 +264,10 @@ export function TokenMint(props: Props) {
             setShowTransactionStatus(true);
             setTransactionStep(0);
 
-            if (!currentChain || currentChain.id !== sepoliaChain.id) {
+            if (!currentChain || currentChain.id !== fantomChain.id) {
                 try {
                     console.log("%cSwitching chain before minting", "color: orange; font-weight: bold;");
-                    await switchChain(sepoliaChain);
+                    await switchChain(fantomChain);
                     console.log("%cChain switched successfully", "color: green; font-weight: bold;");
                 } catch (error) {
                     console.error("%cError switching chain", "color: red; font-weight: bold;", error);
@@ -306,16 +304,29 @@ export function TokenMint(props: Props) {
                 },
                 onError: (error) => {
                     console.error("%cMint error", "color: red; font-weight: bold;", error);
-                    showToast(error.message, "error");
+                    // Personalizar mensajes de error específicos
+                    if (error.message.includes("Claim condition not found")) {
+                        showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
+                    } else if (error.message.includes("Failed to estimate cost")) {
+                        showToast("No se pudo estimar el costo. El minteo aún no está habilitado.", "error");
+                    } else {
+                        showToast("Error al intentar mintear. Por favor, inténtalo más tarde.", "error");
+                    }
                     resetTransactionStatus();
                 },
             });
         } catch (error) {
             console.error("%cMint error", "color: red; font-weight: bold;", error);
             if (error instanceof Error) {
-                showToast(error.message, "error");
+                if (error.message.includes("Claim condition not found")) {
+                    showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
+                } else if (error.message.includes("Failed to estimate cost")) {
+                    showToast("No se pudo estimar el costo. El minteo aún no está habilitado.", "error");
+                } else {
+                    showToast("Error al intentar mintear. Por favor, inténtalo más tarde.", "error");
+                }
             } else {
-                showToast("Error al mintear tokens", "error");
+                showToast("Error al mintear tokens. Por favor, inténtalo más tarde.", "error");
             }
             resetTransactionStatus();
         }
@@ -382,11 +393,16 @@ export function TokenMint(props: Props) {
                             </div>
 
                             <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
-                                Total: <CountUp end={props.pricePerToken * quantity} /> {props.currencySymbol}
+                                    Total: <CountUp 
+                                        end={props.pricePerToken * quantity} 
+                                        decimals={1}  // Asegura que se muestren los decimales
+                                    /> {props.currencySymbol}
                             </div>
 
                             <div className="text-xs pr-1 text-zinc-400 font-mono mt-1">
-                                Tienes {formatBalance(tokenBalance)} AGOD Tokens
+                                {tokenBalance > 0 
+                                    ? `Tienes ${formatBalance(tokenBalance)} AGOD Tokens`
+                                    : "Aún no tienes AGOD Tokens"}
                             </div>
                         </div>
                     )}

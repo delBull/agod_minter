@@ -1,7 +1,7 @@
 "use client";
 
 import { ThirdwebProvider } from "thirdweb/react";
-import { sepoliaChain } from "@/lib/chains";
+import { fantomChain } from "@/lib/chains";
 import { useEffect } from "react";
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 
@@ -12,23 +12,23 @@ function ConnectionLogger({ children }: { children: React.ReactNode }) {
         
         // Log basic chain details
         console.log("%cChain Details", "font-weight: bold; color: blue;");
-        console.log("  ID:", sepoliaChain.id);
-        console.log("  Name:", sepoliaChain.name);
-        console.log("  RPC URL:", sepoliaChain.rpc);
-        console.log("  Testnet:", sepoliaChain.testnet);
+        console.log("  ID:", fantomChain.id);
+        console.log("  Name:", fantomChain.name);
+        console.log("  RPC URL:", fantomChain.rpc);
+        console.log("  Testnet:", fantomChain.testnet);
         
         // Log native currency if available
-        if (sepoliaChain.nativeCurrency) {
+        if (fantomChain.nativeCurrency) {
             console.log("%cNative Currency", "font-weight: bold; color: blue;");
-            console.log("  Name:", sepoliaChain.nativeCurrency.name);
-            console.log("  Symbol:", sepoliaChain.nativeCurrency.symbol);
-            console.log("  Decimals:", sepoliaChain.nativeCurrency.decimals);
+            console.log("  Name:", fantomChain.nativeCurrency.name);
+            console.log("  Symbol:", fantomChain.nativeCurrency.symbol);
+            console.log("  Decimals:", fantomChain.nativeCurrency.decimals);
         }
         
         // Log block explorers if available
-        if (sepoliaChain.blockExplorers?.length) {
+        if (fantomChain.blockExplorers?.length) {
             console.log("%cBlock Explorers", "font-weight: bold; color: blue;");
-            sepoliaChain.blockExplorers.forEach((explorer, index) => {
+            fantomChain.blockExplorers.forEach((explorer, index) => {
                 console.log(`  ${index + 1}. ${explorer.name}`);
                 console.log("     URL:", explorer.url);
                 console.log("     API:", explorer.apiUrl);
@@ -37,9 +37,9 @@ function ConnectionLogger({ children }: { children: React.ReactNode }) {
         
         // Log chain ID formats
         console.log("%cChain ID Formats", "font-weight: bold; color: blue;");
-        console.log("  Decimal:", sepoliaChain.id);
-        console.log("  Hex:", `0x${sepoliaChain.id.toString(16)}`);
-        console.log("  String:", sepoliaChain.id.toString());
+        console.log("  Decimal:", fantomChain.id);
+        console.log("  Hex:", `0x${fantomChain.id.toString(16)}`);
+        console.log("  String:", fantomChain.id.toString());
         
         // Log environment details
         console.log("%cEnvironment", "font-weight: bold; color: blue;");
