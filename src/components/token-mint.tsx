@@ -139,7 +139,7 @@ export function TokenMint(props: Props) {
     const [isChangingChain, setIsChangingChain] = useState(false);
     const [transactionStep, setTransactionStep] = useState(-1);
     const [showTransactionStatus, setShowTransactionStatus] = useState(false);
-    const { verifyHuman } = useReCaptcha();
+    const { verifyHuman, isReady: isRecaptchaReady } = useReCaptcha();
 
     const updateBalance = async () => {
         if (account && props.contract) {
@@ -247,6 +247,11 @@ export function TokenMint(props: Props) {
     const handleMint = async () => {
         if (!account) {
             showToast("Por favor conecta tu wallet primero", "error");
+            return;
+        }
+
+        if (!isRecaptchaReady) {
+            showToast("El sistema de seguridad se está inicializando. Por favor, espera un momento.", "error");
             return;
         }
 
@@ -393,9 +398,12 @@ export function TokenMint(props: Props) {
                             variant="gradient"
                             className="flex-1"
                             onClick={handleMint}
-                            disabled={isPending || isChangingChain || showTransactionStatus}
+                            disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
                         >
-                            {isPending ? "Minting..." : isChangingChain ? "Switching Network..." : `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
+                            {isPending ? "Minting..." : 
+                            isChangingChain ? "Switching Network..." : 
+                            !isRecaptchaReady ? "Inicializando..." :
+                            `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
                         </Button>
                         <StyledConnectButton />
                     </div>

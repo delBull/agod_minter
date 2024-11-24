@@ -1,11 +1,12 @@
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { useCallback } from 'react';
 
 export function useReCaptcha() {
   const { executeRecaptcha } = useGoogleReCaptcha();
 
-  const verifyHuman = async () => {
+  const verifyHuman = useCallback(async () => {
     if (!executeRecaptcha) {
-      console.warn('reCAPTCHA not yet available');
+      console.warn('reCAPTCHA no está inicializado correctamente');
       return null;
     }
 
@@ -13,10 +14,13 @@ export function useReCaptcha() {
       const token = await executeRecaptcha('submit');
       return token;
     } catch (error) {
-      console.error('reCAPTCHA verification failed:', error);
+      console.error('Error al verificar reCAPTCHA:', error);
       return null;
     }
-  };
+  }, [executeRecaptcha]);
 
-  return { verifyHuman };
+  return { 
+    verifyHuman,
+    isReady: !!executeRecaptcha 
+  };
 }
