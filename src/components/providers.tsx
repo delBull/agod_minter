@@ -3,7 +3,7 @@
 import { ThirdwebProvider } from "thirdweb/react";
 import { sepoliaChain } from "@/lib/chains";
 import { useEffect } from "react";
-import { ReCaptchaProvider } from "./recaptcha-provider";
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 
 function ConnectionLogger({ children }: { children: React.ReactNode }) {
     useEffect(() => {
@@ -56,13 +56,34 @@ function ConnectionLogger({ children }: { children: React.ReactNode }) {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+    const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+    if (!reCaptchaKey) {
+        console.error('NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not configured');
+    }
+
     return (
-        <ReCaptchaProvider>
+        <GoogleReCaptchaProvider
+            reCaptchaKey={reCaptchaKey || ''}
+            scriptProps={{
+                async: true,
+                defer: true,
+                appendTo: 'head',
+            }}
+            container={{
+                parameters: {
+                    badge: 'bottomright',
+                    theme: 'dark',
+                },
+            }}
+            useRecaptchaNet={true}
+            language="es"
+        >
             <ThirdwebProvider>
                 <ConnectionLogger>
                     {children}
                 </ConnectionLogger>
             </ThirdwebProvider>
-        </ReCaptchaProvider>
+        </GoogleReCaptchaProvider>
     );
 }
