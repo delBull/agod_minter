@@ -1,3 +1,5 @@
+"use client";
+
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { useEffect, useState } from 'react';
 
@@ -6,19 +8,27 @@ export function ReCaptchaProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [isReady, setIsReady] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
-    if (!reCaptchaKey) {
-      console.error('reCAPTCHA site key is not configured');
-      return;
+    if (typeof window !== 'undefined') {
+      if (!reCaptchaKey) {
+        setError('reCAPTCHA key is missing');
+        console.error('NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not configured');
+      }
+      setMounted(true);
     }
-    setIsReady(true);
   }, [reCaptchaKey]);
 
-  if (!reCaptchaKey) {
-    console.warn('reCAPTCHA is not configured. Please add NEXT_PUBLIC_RECAPTCHA_SITE_KEY to your .env file');
+  // Handle server-side rendering
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
+  if (error || !reCaptchaKey) {
+    console.warn('reCAPTCHA initialization failed:', error || 'Missing site key');
     return <>{children}</>;
   }
 
@@ -37,8 +47,7 @@ export function ReCaptchaProvider({
           theme: 'dark',
         },
       }}
-      useEnterprise={false}
-      useRecaptchaNet={false}
+      useRecaptchaNet={true}
       language="es"
     >
       {children}

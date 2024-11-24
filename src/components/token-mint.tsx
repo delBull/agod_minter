@@ -394,17 +394,17 @@ export function TokenMint(props: Props) {
 
                 <CardFooter className="flex flex-col items-center justify-center">
                     <div className="flex flex-col items-center justify-center w-full">
-                        <Button
-                            variant="gradient"
-                            className="flex-1"
-                            onClick={handleMint}
-                            disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
+                    <Button
+                        variant="gradient"
+                        className="flex-1"
+                        onClick={handleMint}
+                        disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
                         >
-                            {isPending ? "Minting..." : 
-                            isChangingChain ? "Switching Network..." : 
-                            !isRecaptchaReady ? "Inicializando..." :
-                            `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
-                        </Button>
+                        {isPending ? "Minting..." : 
+                        isChangingChain ? "Cambiando Red..." : 
+                        !isRecaptchaReady ? "Inicializando Seguridad..." :
+                        `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
+                    </Button>
                         <StyledConnectButton />
                     </div>
                 </CardFooter>
@@ -412,3 +412,4 @@ export function TokenMint(props: Props) {
         </div>
     );
 }
+
