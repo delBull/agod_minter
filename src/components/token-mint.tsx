@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { fantomChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
+import { CountdownTimer } from "./countdown-timer";
 
 // Enhanced toast styles with consistent gradient and styling
 const enhancedToastStyle = {
@@ -340,6 +341,7 @@ export function TokenMint(props: Props) {
     if (!account) {
         return (
             <div className="flex flex-col items-center justify-center -mt-32">
+                <CountdownTimer />
                 <StyledConnectButton />
             </div>
         );
