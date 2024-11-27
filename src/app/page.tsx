@@ -45,7 +45,7 @@ function Header(): JSX.Element {
         </h1>
 
         <p className="text-zinc-300 text-base">
-          Abre la puerta al{" "}
+          Abre la puerta tu{" "}
           <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
             UNIVERSO
           </code>{" "}
