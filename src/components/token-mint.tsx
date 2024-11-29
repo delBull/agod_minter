@@ -365,6 +365,9 @@ export function TokenMint(props: Props) {
                         />
                     ) : (
                         <div className="flex flex-col items-center justify-center mb-4">
+                            <div className="text-xs text-center font-medium font-mono text-zinc-400 mb-2">
+                                AGOD Token está en la red Base, <br />conéctate a ella para mintear.
+                            </div>
                             <div className="flex items-center">
                                 <Button
                                     variant="outline"
