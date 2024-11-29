@@ -25,7 +25,7 @@ import { useSpring, animated } from "react-spring";
 import CountUp from "react-countup";
 import { claimTo } from "thirdweb/extensions/erc20";
 import { Button } from "@/components/ui/button";
-import { fantomChain } from "@/lib/chains";
+import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
 import { CountdownTimer } from "./countdown-timer";
@@ -145,7 +145,7 @@ export function TokenMint(props: Props) {
                 const contract = getContract({
                     client,
                     address: props.contract.address,
-                    chain: fantomChain
+                    chain: baseChain
                 });
 
                 const balance = await balanceOf({
@@ -193,11 +193,11 @@ export function TokenMint(props: Props) {
             if (!activeWallet || !account || isChangingChain || isHandlingSwitch) return;
 
             try {
-                if (!currentChain || currentChain.id !== fantomChain.id) {
+                if (!currentChain || currentChain.id !== baseChain.id) {
                     isHandlingSwitch = true;
                     setIsChangingChain(true);
-                    await switchChain(fantomChain);
-                    showToast("¡Red cambiada exitosamente a Fantom Opera!");
+                    await switchChain(baseChain);
+                    showToast("¡Red cambiada exitosamente a Base Mainnet!");
                 }
             } catch (error) {
                 console.error("%cError switching chain", "color: red; font-weight: bold;", error);
@@ -265,10 +265,10 @@ export function TokenMint(props: Props) {
             setShowTransactionStatus(true);
             setTransactionStep(0);
 
-            if (!currentChain || currentChain.id !== fantomChain.id) {
+            if (!currentChain || currentChain.id !== baseChain.id) {
                 try {
                     console.log("%cSwitching chain before minting", "color: orange; font-weight: bold;");
-                    await switchChain(fantomChain);
+                    await switchChain(baseChain);
                     console.log("%cChain switched successfully", "color: green; font-weight: bold;");
                 } catch (error) {
                     console.error("%cError switching chain", "color: red; font-weight: bold;", error);

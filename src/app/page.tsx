@@ -3,7 +3,7 @@
 import { TokenMint } from "@/components/token-mint";
 import { client } from "@/lib/thirdwebClient";
 import { getContract } from "thirdweb/contract";
-import { fantomChain } from "@/lib/chains";
+import { baseChain } from "@/lib/chains";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -11,7 +11,7 @@ import { EcosystemResources } from "@/components/ecosystem-resources";
 import { Vortex } from "@/components/ui/vortex";
 import { AlertTriangle } from "lucide-react";
 
-const contractAddress = "0x3c568BFDae5D8982307C620bD230e528502DBBFD";
+const contractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
 
 function Header(): JSX.Element {
   return (
@@ -78,11 +78,11 @@ export default function Home() {
 
     const initContract = async () => {
       try {
-        console.log("Initializing contract on chain:", fantomChain.name);
+        console.log("Initializing contract on chain:", baseChain.name);
         const newContract = getContract({
           client,
           address: contractAddress,
-          chain: fantomChain
+          chain: baseChain
         });
         console.log("Contract initialized successfully");
         setContract(newContract);
@@ -126,7 +126,7 @@ export default function Home() {
             displayName=""
             description=""
             contractImage="/icon.png"
-            pricePerToken={0.7}
+            pricePerToken={0.007}
             currencySymbol="USDC"
             isERC20={true}
           />

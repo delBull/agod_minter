@@ -1,18 +1,17 @@
 import { Chain } from "thirdweb/chains";
 
-export const fantomChain: Chain = {
-    id: 250,
-    name: "Fantom Opera",
-    rpc: "https://250.rpc.thirdweb.com",
+export const baseChain: Chain = {
+    id: 8453,
+    name: "Base Mainnet",
+    rpc: "https://mainnet.base.org",
     nativeCurrency: {
         decimals: 18,
-        name: "Fantom",
-        symbol: "FTM",
+        name: "Base",
+        symbol: "ETH",
     },
     blockExplorers: [{
-        name: "FTMScan",
-        url: "https://ftmscan.com",
-        apiUrl: "https://api.ftmscan.com"
+        name: "BaseScan",
+        url: "https://base.blockscout.com/",
     }],
     // Omitimos la propiedad testnet ya que es mainnet
 } as const;

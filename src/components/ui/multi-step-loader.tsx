@@ -168,7 +168,7 @@ export const MultiStepLoader = ({
                   Ten en cuenta que las transacciones en la blockchain requieren tarifas de gas.
                 </li>
                 <li className="flex items-start gap-2">
-                  así que asegúrate de tener suficiente saldo en la moneda nativa (por ejemplo, FTM en Fantom).
+                  así que asegúrate de tener suficiente saldo en la moneda nativa (por ejemplo, ETH en Base).
                 </li>
               </ul>
             </div>
