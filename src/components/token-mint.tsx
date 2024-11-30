@@ -117,6 +117,13 @@ function StyledConnectButton() {
     );
 }
 
+interface AddTokenParams {
+    address: string;
+    symbol: string;
+    decimals: number;
+    image?: string;
+}
+
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
     const [tokenBalance, setTokenBalance] = useState<number>(0);
@@ -264,34 +271,45 @@ export function TokenMint(props: Props) {
 
     const handleAddToWallet = async () => {
         try {
-            if (!window.ethereum) {
+            // Verificar si MetaMask está instalado
+            if (typeof window.ethereum === 'undefined') {
                 showToast("Por favor instala MetaMask", "error");
                 return;
             }
 
-            const tokenAddress = props.contract.address;
-            const tokenSymbol = "AGOD";
-            const tokenDecimals = 18;
-            const tokenImage = props.contractImage;
+            // Parámetros del token
+            const tokenParams: AddTokenParams = {
+                address: props.contract.address,
+                symbol: "AGOD",
+                decimals: 18,
+                image: props.contractImage // URL de la imagen del token
+            };
 
-            const wasAdded = await window.ethereum.request({
-                method: 'wallet_watchAsset',
-                params: [{
-                    type: 'ERC20',
-                    options: {
-                        address: tokenAddress,
-                        symbol: tokenSymbol,
-                        decimals: tokenDecimals,
-                        image: tokenImage,
-                    },
-                }]
-            });
+            try {
+                // Solicitar a MetaMask que agregue el token
+                const wasAdded = await window.ethereum.request({
+                    method: 'wallet_watchAsset',
+                    params: {
+                        type: 'ERC20',
+                        options: tokenParams
+                    }
+                });
 
-            if (wasAdded) {
-                showToast("¡AGOD Token añadido a tu wallet!");
+                if (wasAdded) {
+                    showToast("¡AGOD Token añadido exitosamente!");
+                } else {
+                    showToast("No se pudo añadir el token", "error");
+                }
+            } catch (error: any) {
+                console.error("Error al añadir token:", error);
+                if (error.code === 4001) {
+                    showToast("Operación cancelada por el usuario", "error");
+                } else {
+                    showToast("Error al añadir el token", "error");
+                }
             }
         } catch (error) {
-            console.error("Error añadiendo token:", error);
+            console.error("Error general:", error);
             showToast("Error al añadir el token", "error");
         }
     };
