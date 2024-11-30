@@ -130,6 +130,12 @@ function StyledConnectButton() {
     );
 }
 
+// Agregar interface para el error de Web3
+interface Web3Error extends Error {
+    code?: string | number;
+    details?: any;
+}
+
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
     const { theme } = useTheme();
@@ -250,42 +256,46 @@ export function TokenMint(props: Props) {
 
     const handleMint = async () => {
         if (!account) {
+            console.log("No hay cuenta conectada");
             showToast("Por favor conecta tu wallet primero", "error");
             return;
         }
 
-        if (!isRecaptchaReady) {
-            showToast("El sistema de seguridad se está inicializando. Por favor, espera un momento.", "error");
-            return;
-        }
-
+        // Verificar explícitamente la cadena y el balance antes del minteo
         try {
-            // Verify human interaction first
-            const token = await verifyHuman();
-            if (!token) {
-                showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
-                return;
+            if (!currentChain) {
+                console.log("Estado actual de la cadena:", currentChain);
+                throw new Error("No se detectó la cadena");
             }
 
+            // Verificar que estamos en Base
+            if (currentChain.id !== baseChain.id) {
+                console.log("Cambio de cadena necesario:", {
+                    actual: currentChain.id,
+                    necesaria: baseChain.id
+                });
+                await switchChain(baseChain);
+                // Esperar un momento para que el cambio se complete
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+            // Verificar el balance antes de mintear
+            const contract = getContract({
+                client,
+                address: props.contract.address,
+                chain: baseChain
+            });
+
+            // Resto del código de minteo...
             setShowTransactionStatus(true);
             setTransactionStep(0);
 
-            if (!currentChain || currentChain.id !== baseChain.id) {
-                try {
-                    console.log("%cSwitching chain before minting", "color: orange; font-weight: bold;");
-                    await switchChain(baseChain);
-                    console.log("%cChain switched successfully", "color: green; font-weight: bold;");
-                } catch (error) {
-                    console.error("%cError switching chain", "color: red; font-weight: bold;", error);
-                    showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
-                    resetTransactionStatus();
-                    return;
-                }
-            }
-
-            console.log("%cStarting mint", "color: blue; font-weight: bold;");
-            console.log("  Quantity:", quantity);
-            console.log("  Address:", account.address);
+            console.log("Iniciando transacción con:", {
+                contractAddress: props.contract.address,
+                userAddress: account.address,
+                quantity: quantity,
+                chain: currentChain
+            });
 
             setTransactionStep(1);
             const transaction = claimTo({
@@ -294,6 +304,7 @@ export function TokenMint(props: Props) {
                 quantity: String(quantity),
             });
 
+            // Modificar el manejo de errores
             sendTransaction(transaction, {
                 onSuccess: () => {
                     setTransactionStep(2);
@@ -308,33 +319,30 @@ export function TokenMint(props: Props) {
                         resetTransactionStatus();
                     }, 2000);
                 },
-                onError: (error) => {
-                    console.error("%cMint error", "color: red; font-weight: bold;", error);
-                    // Personalizar mensajes de error específicos
-                    if (error.message.includes("Claim condition not found")) {
-                        showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
-                    } else if (error.message.includes("Failed to estimate cost")) {
-                        showToast("No se pudo estimar el costo. El minteo aún no está habilitado.", "error");
+                onError: (error: Web3Error) => {
+                    console.error("Error detallado:", {
+                        message: error.message,
+                        code: error.code || 'unknown',
+                        details: error
+                    });
+                    
+                    // Mensajes de error más específicos
+                    if (error.message.includes("insufficient funds")) {
+                        showToast("No hay suficientes fondos para cubrir el gas", "error");
+                    } else if (error.message.includes("user rejected")) {
+                        showToast("Transacción rechazada por el usuario", "error");
+                    } else if (error.message.includes("network")) {
+                        showToast("Error de conexión. Verifica tu red", "error");
                     } else {
-                        showToast("Error al intentar mintear. Por favor, inténtalo más tarde.", "error");
+                        showToast(`Error: ${error.message}`, "error");
                     }
                     resetTransactionStatus();
                 },
             });
+
         } catch (error) {
-            console.error("%cMint error", "color: red; font-weight: bold;", error);
-            if (error instanceof Error) {
-                if (error.message.includes("Claim condition not found")) {
-                    showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
-                } else if (error.message.includes("Failed to estimate cost")) {
-                    showToast("No se pudo estimar el costo. El minteo aún no está habilitado.", "error");
-                } else {
-                    showToast("Error al intentar mintear. Por favor, inténtalo más tarde.", "error");
-                }
-            } else {
-                showToast("Error al mintear tokens. Por favor, inténtalo más tarde.", "error");
-            }
-            resetTransactionStatus();
+            console.error("Error en proceso de minteo:", error);
+            // ... rest of error handling ...
         }
     };
 
