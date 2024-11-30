@@ -27,7 +27,6 @@ import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "@/hooks/use-recaptcha";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { prepareContractCall } from "thirdweb";
 import { useTokenMintLogic, TransactionStep } from './token-mint-logic';
 
 const enhancedToastStyle = {
@@ -126,7 +125,7 @@ export function TokenMint(props: Props) {
     const [isChangingChain, setIsChangingChain] = useState(false);
     const { verifyHuman, isReady: isRecaptchaReady } = useReCaptcha();
     const account = useActiveAccount();
-    const { mutate: sendTransaction, isPending } = useSendTransaction();
+    const { mutate: sendTransaction, isPending: isTransactionPending } = useSendTransaction();
     const activeWallet = useActiveWallet();
     const switchChain = useSwitchActiveWalletChain();
     const currentChain = useActiveWalletChain();
@@ -164,12 +163,9 @@ export function TokenMint(props: Props) {
 
     const {
         handleMint,
-        handleMintAfterApproval,
+        isPending: isMintPending
     } = useTokenMintLogic({
         contract: props.contract,
-        account,
-        sendTransaction,
-        isPending,
         setTransactionStep: handleTransactionStep,
         setShowTransactionStatus,
         quantity,
@@ -302,54 +298,30 @@ export function TokenMint(props: Props) {
 
     const setupClaimConditions = async () => {
         try {
-            // Definir las condiciones con los tipos correctos
-            const conditions = [{
-                startTimestamp: BigInt(0),
-                maxClaimableSupply: BigInt("100000000000000000000000000"),
-                supplyClaimed: BigInt(0),
-                quantityLimitPerWallet: BigInt("100000000000000000000000000"),
-                merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
-                pricePerToken: BigInt(7000),
-                currency: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-                metadata: "AGOD Token Minter"
-            }];
-
-            // Convertir las condiciones al formato de array que espera el contrato
-            const formattedConditions = conditions.map(c => [
-                c.startTimestamp,
-                c.maxClaimableSupply,
-                c.supplyClaimed,
-                c.quantityLimitPerWallet,
-                c.merkleRoot,
-                c.pricePerToken,
-                c.currency,
-                c.metadata
-            ] as const);
-
-            // Preparar la transacción usando la firma exacta del contrato
-            const transaction = prepareContractCall({
+            // Preparar la transacción con todas las propiedades requeridas
+            const transaction = {
                 contract: props.contract,
-                method: "function setClaimConditions((uint256,uint256,uint256,uint256,bytes32,uint256,address,string)[],bool)",
-                params: [formattedConditions, false] as const
-            });
+                method: "setClaimConditions",
+                params: [[{
+                    startTimestamp: BigInt(0),
+                    maxClaimableSupply: BigInt("100000000000000000000000000"),
+                    supplyClaimed: BigInt(0),
+                    quantityLimitPerWallet: BigInt("100000000000000000000000000"),
+                    merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    pricePerToken: BigInt(7000),
+                    currency: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    metadata: "AGOD Token Minter"
+                }], false],
+                // Agregar las propiedades requeridas
+                chain: baseChain,
+                client: client
+            };
 
             await sendTransaction(transaction, {
                 onSuccess: async () => {
                     console.log("Claim conditions configuradas exitosamente");
                     showToast("Claim conditions actualizadas");
-                    
-                    // Verificar la configuración después de actualizar
-                    try {
-                        const { data: claimCondition } = useReadContract({
-                            contract: props.contract,
-                            method: "function getClaimConditionById(uint256) view returns ((uint256,uint256,uint256,uint256,bytes32,uint256,address,string))",
-                            params: [BigInt(0)]
-                        });
-                        
-                        console.log("Nueva configuración:", claimCondition);
-                    } catch (error) {
-                        console.error("Error verificando nueva configuración:", error);
-                    }
+                    await verifyContractSetup();
                 },
                 onError: (error) => {
                     console.error("Error configurando claim conditions:", error);
@@ -364,44 +336,15 @@ export function TokenMint(props: Props) {
 
     const verifyContractSetup = async () => {
         try {
-            const contract = getContract({
-                client,
-                address: props.contract.address,
-                chain: baseChain
-            });
-
-            const { data: claimConditionData } = useReadContract({
-                contract,
-                method: "function getClaimConditionById(uint256) view returns ((uint256,uint256,uint256,uint256,bytes32,uint256,address,string))",
+            const { data: claimConditionData } = await useReadContract({
+                contract: props.contract,
+                method: "getClaimConditionById",
                 params: [BigInt(0)]
             });
 
-            if (claimConditionData && Array.isArray(claimConditionData) && claimConditionData.length >= 8) {
-                const [
-                    startTimestamp,
-                    maxClaimableSupply,
-                    supplyClaimed,
-                    quantityLimitPerWallet,
-                    merkleRoot,
-                    pricePerToken,
-                    currency,
-                    metadata
-                ] = claimConditionData;
-
-                console.log("Configuración actual del contrato:", {
-                    startTimestamp: startTimestamp?.toString(),
-                    maxClaimableSupply: maxClaimableSupply?.toString(),
-                    supplyClaimed: supplyClaimed?.toString(),
-                    quantityLimitPerWallet: quantityLimitPerWallet?.toString(),
-                    merkleRoot,
-                    pricePerToken: pricePerToken?.toString(),
-                    currency,
-                    metadata
-                });
-                showToast("Configuración verificada, revisa la consola");
-            } else {
-                console.error("No se pudo obtener la configuración");
-                showToast("Error: No se pudo obtener la configuración", "error");
+            if (claimConditionData) {
+                console.log("Configuración actual:", claimConditionData);
+                showToast("Configuración verificada");
             }
         } catch (error) {
             console.error("Error verificando configuración:", error);
@@ -433,6 +376,8 @@ export function TokenMint(props: Props) {
             showToast(message, transactionStep === 3 ? "success" : undefined);
         }
     }, [transactionStep, showTransactionStatus]);
+
+    const isButtonDisabled = isMintPending || isTransactionPending || isChangingChain || showTransactionStatus || !isRecaptchaReady;
 
     return (
         <div className="flex flex-col items-center justify-center">
@@ -532,9 +477,9 @@ export function TokenMint(props: Props) {
                                     variant="gradient"
                                     className="flex-1 h-10 text-xs sm:text-sm"
                                     onClick={handleMint}
-                                    disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
+                                    disabled={isButtonDisabled}
                                 >
-                                    {isPending ? "Minting..." : 
+                                    {isMintPending ? "Minting..." : 
                                     isChangingChain ? "Cambiando Red..." : 
                                     !isRecaptchaReady ? "Inicializando Seguridad..." :
                                     `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
