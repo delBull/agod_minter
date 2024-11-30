@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Coins } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { ThirdwebContract } from "thirdweb";
 import {
@@ -13,12 +13,13 @@ import {
     useActiveWallet,
     darkTheme,
     useSwitchActiveWalletChain,
-    useActiveWalletChain
+    useActiveWalletChain,
+    useReadContract
 } from "thirdweb/react";
 import { client } from "@/lib/thirdwebClient";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { getContract } from "thirdweb/contract";
-import { balanceOf } from "thirdweb/extensions/erc20";
+import { balanceOf, allowance } from "thirdweb/extensions/erc20";
 import React from "react";
 import { toast } from "sonner";
 import { useSpring, animated } from "react-spring";
@@ -29,6 +30,7 @@ import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
 import { CountdownTimer } from "./countdown-timer";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const enhancedToastStyle = {
     style: {
@@ -230,9 +232,14 @@ export function TokenMint(props: Props) {
     };
 
     const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Number.parseInt(e.target.value);
-        if (!Number.isNaN(value)) {
-            setQuantity(Math.max(1, value));
+        const value = e.target.value;
+        if (value === "") {
+            setQuantity(0);
+        } else {
+            const numValue = Number.parseInt(value);
+            if (!Number.isNaN(numValue)) {
+                setQuantity(Math.max(0, numValue));
+            }
         }
     };
 
@@ -249,43 +256,127 @@ export function TokenMint(props: Props) {
             return;
         }
 
-        if (!isRecaptchaReady) {
-            showToast("El sistema de seguridad se está inicializando. Por favor, espera un momento.", "error");
-            return;
-        }
-
         try {
-            // Verify human interaction first
-            const token = await verifyHuman();
-            if (!token) {
-                showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
+            if (!currentChain || currentChain.id !== baseChain.id) {
+                await switchChain(baseChain);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+            const usdcContract = getContract({
+                client,
+                address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                chain: baseChain
+            });
+
+            const PRICE_PER_TOKEN = 0.007;
+            const DECIMALS = 6;
+            const pricePerTokenInBaseUnits = BigInt(Math.floor(PRICE_PER_TOKEN * Math.pow(10, DECIMALS)));
+            const totalAmount = pricePerTokenInBaseUnits * BigInt(quantity);
+
+            // Verificar balance y allowance
+            const [usdcBalance, currentAllowance] = await Promise.all([
+                balanceOf({
+                    contract: usdcContract,
+                    address: account.address
+                }),
+                allowance({
+                    contract: usdcContract,
+                    spender: props.contract.address,
+                    owner: account.address
+                })
+            ]);
+
+            if (usdcBalance < totalAmount) {
+                const requiredUSDC = Number(totalAmount) / Math.pow(10, DECIMALS);
+                showToast(`Necesitas ${requiredUSDC.toFixed(3)} USDC para mintear`, "error");
                 return;
             }
 
-            setShowTransactionStatus(true);
-            setTransactionStep(0);
+            // Si necesitamos aprobación
+            if (currentAllowance < totalAmount) {
+                setTransactionStep(0);
+                setShowTransactionStatus(true);
 
-            if (!currentChain || currentChain.id !== baseChain.id) {
+                const approvalTx = {
+                    contract: usdcContract,
+                    functionName: "approve",
+                    args: [props.contract.address, totalAmount * BigInt(3)],
+                    chain: baseChain,
+                    client: client
+                };
+
                 try {
-                    console.log("%cSwitching chain before minting", "color: orange; font-weight: bold;");
-                    await switchChain(baseChain);
-                    console.log("%cChain switched successfully", "color: green; font-weight: bold;");
+                    await sendTransaction(approvalTx, {
+                        onSuccess: async () => {
+                            console.log("Aprobación iniciada");
+                            setTransactionStep(1);
+                            
+                            // Esperamos un tiempo inicial para dar tiempo a que la transacción se propague
+                            await new Promise(wait => setTimeout(wait, 8000));
+                            
+                            // Esperamos y verificamos la aprobación
+                            let isApproved = false;
+                            let attempts = 0;
+                            const maxAttempts = 15; // Aumentamos el número de intentos
+                            
+                            while (!isApproved && attempts < maxAttempts) {
+                                await new Promise(wait => setTimeout(wait, 5000)); // 5 segundos entre intentos
+                                
+                                try {
+                                    const newAllowance = await allowance({
+                                        contract: usdcContract,
+                                        spender: props.contract.address,
+                                        owner: account.address
+                                    });
+
+                                    console.log(`Intento ${attempts + 1}: Verificando allowance:`, newAllowance.toString());
+                                    
+                                    if (newAllowance >= totalAmount) {
+                                        isApproved = true;
+                                        console.log("Aprobación confirmada, procediendo con el minteo");
+                                        await handleMintAfterApproval(account.address);
+                                        return;
+                                    }
+                                } catch (error) {
+                                    console.log("Error verificando allowance, reintentando...");
+                                }
+                                
+                                attempts++;
+                            }
+                            
+                            if (!isApproved) {
+                                showToast("La aprobación está tomando más tiempo de lo esperado. Por favor, espera unos minutos y vuelve a intentar el minteo.", "error");
+                                resetTransactionStatus();
+                            }
+                        },
+                        onError: (error) => {
+                            console.error("Error en aprobación:", error);
+                            showToast("Error en la aprobación de USDC", "error");
+                            resetTransactionStatus();
+                        }
+                    });
                 } catch (error) {
-                    console.error("%cError switching chain", "color: red; font-weight: bold;", error);
-                    showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
+                    console.error("Error en aprobación:", error);
+                    showToast("Error en la aprobación de USDC", "error");
                     resetTransactionStatus();
                     return;
                 }
+            } else {
+                await handleMintAfterApproval(account.address);
             }
 
-            console.log("%cStarting mint", "color: blue; font-weight: bold;");
-            console.log("  Quantity:", quantity);
-            console.log("  Address:", account.address);
+        } catch (error: any) {
+            console.error("Error general:", error);
+            showToast("Error inesperado. Por favor, inténtalo de nuevo.", "error");
+            resetTransactionStatus();
+        }
+    };
 
-            setTransactionStep(1);
+    const handleMintAfterApproval = async (accountAddress: string) => {
+        try {
             const transaction = claimTo({
                 contract: props.contract,
-                to: account.address,
+                to: accountAddress,
                 quantity: String(quantity),
             });
 
@@ -294,40 +385,55 @@ export function TokenMint(props: Props) {
                     setTransactionStep(2);
                     setTimeout(() => {
                         setTransactionStep(3);
-                        console.log("%cMint successful", "color: green; font-weight: bold;");
-                        setTimeout(() => {
-                            showToast("¡Tokens minteados exitosamente!");
-                        }, 1000);
-                        setTimeout(updateBalance, 2000);
+                        showToast("¡Tokens minteados exitosamente!");
+                        updateBalance();
                         resetTransactionStatus();
                     }, 2000);
                 },
                 onError: (error) => {
-                    console.error("%cMint error", "color: red; font-weight: bold;", error);
-                    if (error.message.includes("Claim condition not found")) {
-                        showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
-                    } else if (error.message.includes("Failed to estimate cost")) {
-                        showToast("No se pudo estimar el costo. El minteo aún no está habilitado.", "error");
-                    } else {
-                        showToast("Error al intentar mintear. Por favor, inténtalo más tarde.", "error");
-                    }
+                    console.error("Error detallado del minteo:", error);
+                    showToast("Error en el minteo. Por favor, inténtalo de nuevo.", "error");
                     resetTransactionStatus();
-                },
+                }
             });
         } catch (error) {
-            console.error("%cMint error", "color: red; font-weight: bold;", error);
-            if (error instanceof Error) {
-                if (error.message.includes("Claim condition not found")) {
-                    showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
-                } else if (error.message.includes("Failed to estimate cost")) {
-                    showToast("No se pudo estimar el costo. El minteo aún no está habilitado.", "error");
-                } else {
-                    showToast("Error al intentar mintear. Por favor, inténtalo más tarde.", "error");
-                }
-            } else {
-                showToast("Error al mintear tokens. Por favor, inténtalo más tarde.", "error");
-            }
+            console.error("Error preparando minteo:", error);
+            showToast("Error preparando el minteo", "error");
             resetTransactionStatus();
+        }
+    };
+
+    const handleAddToWallet = async () => {
+        try {
+            if (!window.ethereum) {
+                showToast("Por favor instala MetaMask", "error");
+                return;
+            }
+
+            const tokenAddress = props.contract.address;
+            const tokenSymbol = "AGOD";
+            const tokenDecimals = 18;
+            const tokenImage = props.contractImage;
+
+            const wasAdded = await window.ethereum.request({
+                method: 'wallet_watchAsset',
+                params: [{
+                    type: 'ERC20',
+                    options: {
+                        address: tokenAddress,
+                        symbol: tokenSymbol,
+                        decimals: tokenDecimals,
+                        image: tokenImage,
+                    },
+                }]
+            });
+
+            if (wasAdded) {
+                showToast("¡AGOD Token añadido a tu wallet!");
+            }
+        } catch (error) {
+            console.error("Error añadiendo token:", error);
+            showToast("Error al añadir el token", "error");
         }
     };
 
@@ -364,27 +470,26 @@ export function TokenMint(props: Props) {
                     ) : (
                         <div className="flex flex-col items-center justify-center mb-4">
                             <div className="text-xs text-center font-medium font-mono text-zinc-400 mb-2">
-                                AGOD Token está en la red Base, <br />conéctate a ella para mintear.
+                                AGOD Token está en la red Base, <br />conctate a ella para mintear.
                             </div>
                             <div className="flex items-center">
                                 <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={decreaseQuantity}
-                                    disabled={quantity <= 1}
+                                    disabled={quantity <= 0}
                                     className="rounded-r-none border-zinc-800"
                                 >
                                     <Minus className="h-4 w-4" />
                                 </Button>
 
                                 <Input
-                                    type="number"
-                                    value={quantity}
+                                    type="text"
+                                    value={quantity === 0 ? "" : quantity}
                                     onChange={handleQuantityChange}
                                     className="w-28 text-center text-white font-mono rounded-none border-x-0 pl-6 border-zinc-800 bg-transparent"
-                                    min="1"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
+                                    placeholder="0"
+                                    onFocus={(e) => e.target.select()}
                                 />
 
                                 <Button
@@ -399,8 +504,8 @@ export function TokenMint(props: Props) {
 
                             <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
                                 Total: <CountUp 
-                                    end={props.pricePerToken * quantity} 
-                                    decimals={2}
+                                    end={0.007 * quantity}
+                                    decimals={3}
                                     separator=","
                                     decimal="."
                                 /> {props.currencySymbol}
@@ -417,17 +522,39 @@ export function TokenMint(props: Props) {
 
                 <CardFooter className="flex flex-col items-center justify-center">
                     <div className="flex flex-col items-center justify-center w-full">
-                        <Button
-                            variant="gradient"
-                            className="flex-1"
-                            onClick={handleMint}
-                            disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
-                        >
-                            {isPending ? "Minting..." : 
-                            isChangingChain ? "Cambiando Red..." : 
-                            !isRecaptchaReady ? "Inicializando Seguridad..." :
-                            `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
-                        </Button>
+                        <div className="flex items-center gap-2 w-96">
+                            <Button
+                                variant="gradient"
+                                className="flex-1 h-10 text-sm"
+                                onClick={handleMint}
+                                disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
+                            >
+                                {isPending ? "Minting..." : 
+                                isChangingChain ? "Cambiando Red..." : 
+                                !isRecaptchaReady ? "Inicializando Seguridad..." :
+                                `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
+                            </Button>
+                            
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md" />
+                                <TooltipProvider>
+                                    <Tooltip delayDuration={100}>
+                                        <TooltipTrigger asChild>
+                                            <button
+                                                onClick={handleAddToWallet}
+                                                className="relative px-4 h-10 rounded-md bg-transparent flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-100 hover:text-zinc-200 transition-colors border border-transparent hover:border-zinc-700"
+                                            >
+                                                <span>AGOD</span>
+                                                <Coins className="h-4 w-4" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-zinc-800 border-1 border-zinc-400 text-zinc-100 text-xs">
+                                            <p>Agrega AGOD a tu Wallet</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </div>
                         <StyledConnectButton />
                     </div>
                 </CardFooter>
