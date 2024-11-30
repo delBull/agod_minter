@@ -18,7 +18,7 @@ import {
 import { client } from "@/lib/thirdwebClient";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { getContract } from "thirdweb/contract";
-import { balanceOf } from "thirdweb/extensions/erc20";
+import { balanceOf, approve } from "thirdweb/extensions/erc20";
 import React from "react";
 import { toast } from "sonner";
 import { useSpring, animated } from "react-spring";
@@ -261,88 +261,157 @@ export function TokenMint(props: Props) {
             return;
         }
 
-        // Verificar explícitamente la cadena y el balance antes del minteo
         try {
-            if (!currentChain) {
-                console.log("Estado actual de la cadena:", currentChain);
-                throw new Error("No se detectó la cadena");
-            }
+            // Verificar explícitamente la cadena y el balance antes del minteo
+            try {
+                if (!currentChain) {
+                    console.log("Estado actual de la cadena:", currentChain);
+                    throw new Error("No se detectó la cadena");
+                }
 
-            // Verificar que estamos en Base
-            if (currentChain.id !== baseChain.id) {
-                console.log("Cambio de cadena necesario:", {
-                    actual: currentChain.id,
-                    necesaria: baseChain.id
+                // Verificar que estamos en Base
+                if (currentChain.id !== baseChain.id) {
+                    console.log("Cambio de cadena necesario:", {
+                        actual: currentChain.id,
+                        necesaria: baseChain.id
+                    });
+                    await switchChain(baseChain);
+                    // Esperar un momento para que el cambio se complete
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+
+                // Verificar el balance antes de mintear
+                const contract = getContract({
+                    client,
+                    address: props.contract.address,
+                    chain: baseChain
                 });
-                await switchChain(baseChain);
-                // Esperar un momento para que el cambio se complete
-                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Resto del código de minteo...
+                setShowTransactionStatus(true);
+                setTransactionStep(0);
+
+                console.log("Iniciando transacción con:", {
+                    contractAddress: props.contract.address,
+                    userAddress: account.address,
+                    quantity: quantity,
+                    chain: currentChain
+                });
+
+                setTransactionStep(1);
+                const transaction = claimTo({
+                    contract: props.contract,
+                    to: account.address,
+                    quantity: String(quantity),
+                });
+
+                // Modificar el manejo de errores
+                sendTransaction(transaction, {
+                    onSuccess: () => {
+                        setTransactionStep(2);
+                        setTimeout(() => {
+                            setTransactionStep(3);
+                            console.log("%cMint successful", "color: green; font-weight: bold;");
+                            // Show success toast only after transaction is fully completed
+                            setTimeout(() => {
+                                showToast("¡Tokens minteados exitosamente!");
+                            }, 1000);
+                            setTimeout(updateBalance, 2000);
+                            resetTransactionStatus();
+                        }, 2000);
+                    },
+                    onError: (error: Web3Error) => {
+                        console.error("Error detallado:", {
+                            message: error.message,
+                            code: error.code || 'unknown',
+                            details: error
+                        });
+                        
+                        // Mensajes de error más específicos
+                        if (error.message.includes("insufficient funds")) {
+                            showToast("No hay suficientes fondos para cubrir el gas", "error");
+                        } else if (error.message.includes("user rejected")) {
+                            showToast("Transacción rechazada por el usuario", "error");
+                        } else if (error.message.includes("network")) {
+                            showToast("Error de conexión. Verifica tu red", "error");
+                        } else {
+                            showToast(`Error: ${error.message}`, "error");
+                        }
+                        resetTransactionStatus();
+                    },
+                });
+
+            } catch (error) {
+                console.error("Error en proceso de minteo:", error);
+                // ... rest of error handling ...
             }
 
-            // Verificar el balance antes de mintear
-            const contract = getContract({
+            // Obtener el contrato USDC
+            const usdcContract = getContract({
                 client,
-                address: props.contract.address,
+                // Asegúrate de usar la dirección correcta del contrato USDC en Base
+                address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC en Base
                 chain: baseChain
             });
 
-            // Resto del código de minteo...
-            setShowTransactionStatus(true);
-            setTransactionStep(0);
+            // Calcular el monto total en USDC (cantidad * precio por token)
+            const totalAmount = String(quantity * props.pricePerToken * 1e6); // USDC tiene 6 decimales
 
-            console.log("Iniciando transacción con:", {
-                contractAddress: props.contract.address,
-                userAddress: account.address,
-                quantity: quantity,
-                chain: currentChain
+            console.log("Iniciando aprobación de USDC:", {
+                amount: totalAmount,
+                spender: props.contract.address
             });
 
-            setTransactionStep(1);
-            const transaction = claimTo({
-                contract: props.contract,
-                to: account.address,
-                quantity: String(quantity),
+            // Aprobar el gasto de USDC
+            const approvalTx = approve({
+                contract: usdcContract,
+                spender: props.contract.address,
+                amount: totalAmount
             });
 
-            // Modificar el manejo de errores
-            sendTransaction(transaction, {
-                onSuccess: () => {
-                    setTransactionStep(2);
-                    setTimeout(() => {
-                        setTransactionStep(3);
-                        console.log("%cMint successful", "color: green; font-weight: bold;");
-                        // Show success toast only after transaction is fully completed
-                        setTimeout(() => {
-                            showToast("¡Tokens minteados exitosamente!");
-                        }, 1000);
-                        setTimeout(updateBalance, 2000);
-                        resetTransactionStatus();
-                    }, 2000);
+            await sendTransaction(approvalTx, {
+                onSuccess: async () => {
+                    console.log("Aprobación exitosa, procediendo con el minteo");
+                    showToast("Aprobación exitosa, iniciando minteo...");
+                    
+                    // Continuar con el minteo original
+                    setShowTransactionStatus(true);
+                    setTransactionStep(1);
+                    
+                    const transaction = claimTo({
+                        contract: props.contract,
+                        to: account.address,
+                        quantity: String(quantity),
+                    });
+
+                    sendTransaction(transaction, {
+                        onSuccess: () => {
+                            setTransactionStep(2);
+                            setTimeout(() => {
+                                setTransactionStep(3);
+                                showToast("¡Tokens minteados exitosamente!");
+                                setTimeout(updateBalance, 2000);
+                                resetTransactionStatus();
+                            }, 2000);
+                        },
+                        onError: (error: Web3Error) => {
+                            console.error("Error en minteo:", error);
+                            showToast(`Error en minteo: ${error.message}`, "error");
+                            resetTransactionStatus();
+                        }
+                    });
                 },
                 onError: (error: Web3Error) => {
-                    console.error("Error detallado:", {
-                        message: error.message,
-                        code: error.code || 'unknown',
-                        details: error
-                    });
-                    
-                    // Mensajes de error más específicos
-                    if (error.message.includes("insufficient funds")) {
-                        showToast("No hay suficientes fondos para cubrir el gas", "error");
-                    } else if (error.message.includes("user rejected")) {
-                        showToast("Transacción rechazada por el usuario", "error");
-                    } else if (error.message.includes("network")) {
-                        showToast("Error de conexión. Verifica tu red", "error");
-                    } else {
-                        showToast(`Error: ${error.message}`, "error");
-                    }
+                    console.error("Error en aprobación:", error);
+                    showToast("Error al aprobar USDC. Por favor, inténtalo de nuevo.", "error");
                     resetTransactionStatus();
-                },
+                }
             });
 
         } catch (error) {
-            console.error("Error en proceso de minteo:", error);
-            // ... rest of error handling ...
+            console.error("Error en proceso:", error);
+            showToast("Error inesperado. Por favor, inténtalo de nuevo.", "error");
+            resetTransactionStatus();
         }
     };
 
