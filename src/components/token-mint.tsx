@@ -64,8 +64,13 @@ type Props = {
 };
 
 function formatBalance(balance: number): string {
-    const formatted = balance / 1e18;
-    return formatted.toString().replace(/\.?0+$/, '');
+    const formatted = balance.toString();
+    // Asegurarse de que el número tenga al menos 18 dígitos agregando ceros a la izquierda
+    const paddedNumber = formatted.padStart(19, '0');
+    // Insertar el punto decimal 18 posiciones desde la derecha
+    const withDecimal = paddedNumber.slice(0, -18) + '.' + paddedNumber.slice(-18);
+    // Convertir a número y formatear para eliminar ceros innecesarios
+    return parseFloat(withDecimal).toString();
 }
 
 function StyledConnectButton() {
