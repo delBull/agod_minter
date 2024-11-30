@@ -253,17 +253,9 @@ export function TokenMint(props: Props) {
             return;
         }
 
-        // Verify human interaction first
-        const token = await verifyHuman();
-        if (!token) {
-            showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
-            return;
-        }
-
-        setShowTransactionStatus(true);
-        setTransactionStep(0);
-
+        // Verificación de red mejorada
         if (!currentChain || currentChain.id !== baseChain.id) {
+            showToast("Por favor, conecta tu wallet a la red Base", "error");
             try {
                 await switchChain(baseChain);
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -274,6 +266,16 @@ export function TokenMint(props: Props) {
                 return;
             }
         }
+
+        // Verify human interaction first
+        const token = await verifyHuman();
+        if (!token) {
+            showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
+            return;
+        }
+
+        setShowTransactionStatus(true);
+        setTransactionStep(0);
 
         const usdcContract = getContract({
             client,
@@ -314,7 +316,7 @@ export function TokenMint(props: Props) {
             const approvalTx = {
                 contract: usdcContract,
                 functionName: "approve",
-                args: [props.contract.address, BigInt(350000)],
+                args: [props.contract.address, BigInt("1000000000")],
                 chain: baseChain,
                 client: client
             };
@@ -338,7 +340,7 @@ export function TokenMint(props: Props) {
                             console.log('Amount necesario:', totalAmount.toString());
                             console.log('Diferencia:', (newAllowance - totalAmount).toString());
 
-                            if (newAllowance >= BigInt(350000)) {
+                            if (newAllowance >= BigInt("1000000000")) {
                                 console.log("Allowance confirmado, procediendo con el minteo");
                                 await handleMintAfterApproval(account.address);
                             } else {
@@ -356,6 +358,8 @@ export function TokenMint(props: Props) {
                         console.error("Error en aprobación:", error);
                         if (error.message?.includes("user rejected")) {
                             showToast("Aprobación cancelada por el usuario", "error");
+                        } else if (error.message?.includes("insufficient funds")) {
+                            showToast("Balance insuficiente para la aprobación", "error");
                         } else {
                             showToast("Error en la aprobación de USDC", "error");
                         }
@@ -404,6 +408,10 @@ export function TokenMint(props: Props) {
                     console.error("Error detallado del minteo:", error);
                     if (error.message?.includes("user rejected")) {
                         showToast("Transacción cancelada por el usuario", "error");
+                    } else if (error.message?.includes("insufficient funds")) {
+                        showToast("USDC insuficiente para el minteo", "error");
+                    } else if (error.message?.includes("exceeds allowance")) {
+                        showToast("Error de aprobación. Por favor, intenta de nuevo.", "error");
                     } else {
                         showToast("Error en el minteo. Por favor, inténtalo de nuevo.", "error");
                     }
@@ -456,11 +464,11 @@ export function TokenMint(props: Props) {
             // Definir las condiciones con los tipos correctos
             const conditions = [{
                 startTimestamp: BigInt(0),
-                maxClaimableSupply: BigInt("1000000000000000000000000"),
+                maxClaimableSupply: BigInt("100000000000000000000000000"),
                 supplyClaimed: BigInt(0),
-                quantityLimitPerWallet: BigInt("1000000000000000000000"),
+                quantityLimitPerWallet: BigInt("100000000000000000000000000"),
                 merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
-                pricePerToken: BigInt(7000000),
+                pricePerToken: BigInt(7000),
                 currency: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
                 metadata: "AGOD Token Minter"
             }];
