@@ -30,6 +30,7 @@ import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { prepareContractCall } from "thirdweb";
 
 const enhancedToastStyle = {
     style: {
@@ -252,107 +253,126 @@ export function TokenMint(props: Props) {
             return;
         }
 
-        try {
-            // Verify human interaction first
-            const token = await verifyHuman();
-            if (!token) {
-                showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
-                return;
-            }
+        // Verify human interaction first
+        const token = await verifyHuman();
+        if (!token) {
+            showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
+            return;
+        }
 
-            setShowTransactionStatus(true);
-            setTransactionStep(0);
+        setShowTransactionStatus(true);
+        setTransactionStep(0);
 
-            if (!currentChain || currentChain.id !== baseChain.id) {
-                try {
-                    await switchChain(baseChain);
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                } catch (error) {
-                    console.error("Error switching chain:", error);
-                    showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
-                    resetTransactionStatus();
-                    return;
-                }
-            }
-
-            const usdcContract = getContract({
-                client,
-                address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-                chain: baseChain
-            });
-
-            const PRICE_PER_TOKEN = 0.007;
-            const DECIMALS = 6;
-            const pricePerTokenInBaseUnits = BigInt(Math.floor(PRICE_PER_TOKEN * Math.pow(10, DECIMALS)));
-            const totalAmount = pricePerTokenInBaseUnits * BigInt(quantity);
-
-            // Verificar balance y allowance
-            const [usdcBalance, currentAllowance] = await Promise.all([
-                balanceOf({
-                    contract: usdcContract,
-                    address: account.address
-                }),
-                allowance({
-                    contract: usdcContract,
-                    spender: props.contract.address,
-                    owner: account.address
-                })
-            ]);
-
-            if (usdcBalance < totalAmount) {
-                const requiredUSDC = Number(totalAmount) / Math.pow(10, DECIMALS);
-                showToast(`Necesitas ${requiredUSDC.toFixed(3)} USDC para mintear`, "error");
+        if (!currentChain || currentChain.id !== baseChain.id) {
+            try {
+                await switchChain(baseChain);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            } catch (error) {
+                console.error("Error switching chain:", error);
+                showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
                 resetTransactionStatus();
                 return;
             }
+        }
 
-            // Si necesitamos aprobación
-            if (currentAllowance < totalAmount) {
-                setTransactionStep(0);
-                setShowTransactionStatus(true);
+        const usdcContract = getContract({
+            client,
+            address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            chain: baseChain
+        });
 
-                const approvalTx = {
-                    contract: usdcContract,
-                    functionName: "approve",
-                    args: [props.contract.address, totalAmount * BigInt(1000)],
-                    chain: baseChain,
-                    client: client
-                };
+        const PRICE_PER_TOKEN = 0.007;
+        const DECIMALS = 6;
+        const pricePerTokenInBaseUnits = BigInt(Math.floor(PRICE_PER_TOKEN * Math.pow(10, DECIMALS)));
+        const totalAmount = pricePerTokenInBaseUnits * BigInt(quantity);
 
-                try {
-                    await sendTransaction(approvalTx, {
-                        onSuccess: async () => {
-                            console.log("Aprobación iniciada");
-                            setTransactionStep(1);
-                            await new Promise(wait => setTimeout(wait, 10000));
-                            await handleMintAfterApproval(account.address);
-                        },
-                        onError: (error) => {
-                            console.error("Error en aprobación:", error);
-                            if (error.message?.includes("user rejected")) {
-                                showToast("Aprobación cancelada por el usuario", "error");
+        // Verificar balance y allowance
+        const [usdcBalance, currentAllowance] = await Promise.all([
+            balanceOf({
+                contract: usdcContract,
+                address: account.address
+            }),
+            allowance({
+                contract: usdcContract,
+                spender: props.contract.address,
+                owner: account.address
+            })
+        ]);
+
+        if (usdcBalance < totalAmount) {
+            const requiredUSDC = Number(totalAmount) / Math.pow(10, DECIMALS);
+            showToast(`Necesitas ${requiredUSDC.toFixed(3)} USDC para mintear`, "error");
+            resetTransactionStatus();
+            return;
+        }
+
+        // Si necesitamos aprobación
+        if (currentAllowance < totalAmount) {
+            setTransactionStep(0);
+            setShowTransactionStatus(true);
+
+            const approvalTx = {
+                contract: usdcContract,
+                functionName: "approve",
+                args: [props.contract.address, BigInt(350000)],
+                chain: baseChain,
+                client: client
+            };
+
+            try {
+                await sendTransaction(approvalTx, {
+                    onSuccess: async () => {
+                        console.log("Aprobación iniciada");
+                        setTransactionStep(1);
+                        
+                        await new Promise(wait => setTimeout(wait, 30000));
+                        
+                        try {
+                            const newAllowance = await allowance({
+                                contract: usdcContract,
+                                spender: props.contract.address,
+                                owner: account.address
+                            });
+
+                            console.log('Nuevo allowance:', newAllowance.toString());
+                            console.log('Amount necesario:', totalAmount.toString());
+                            console.log('Diferencia:', (newAllowance - totalAmount).toString());
+
+                            if (newAllowance >= BigInt(350000)) {
+                                console.log("Allowance confirmado, procediendo con el minteo");
+                                await handleMintAfterApproval(account.address);
                             } else {
-                                showToast("Error en la aprobación de USDC", "error");
+                                console.error("Allowance insuficiente después de aprobación");
+                                showToast("Error: La aprobación no se confirmó correctamente. Por favor, intenta de nuevo.", "error");
+                                resetTransactionStatus();
                             }
+                        } catch (error) {
+                            console.error("Error verificando allowance:", error);
+                            showToast("Error verificando la aprobación", "error");
                             resetTransactionStatus();
                         }
-                    });
-                } catch (error) {
-                    console.error("Error en aprobación:", error);
-                    showToast("Error en la aprobación de USDC", "error");
-                    resetTransactionStatus();
-                    return;
-                }
-            } else {
-                setTransactionStep(1);
-                setShowTransactionStatus(true);
-                await handleMintAfterApproval(account.address);
+                    },
+                    onError: (error) => {
+                        console.error("Error en aprobación:", error);
+                        if (error.message?.includes("user rejected")) {
+                            showToast("Aprobación cancelada por el usuario", "error");
+                        } else {
+                            showToast("Error en la aprobación de USDC", "error");
+                        }
+                        resetTransactionStatus();
+                    }
+                });
+            } catch (error) {
+                console.error("Error en aprobación:", error);
+                showToast("Error en la aprobación de USDC", "error");
+                resetTransactionStatus();
+                return;
             }
-
-        } catch (error) {
-            console.error("Error general:", error);
-            showToast("Error inesperado. Por favor, inténtalo de nuevo.", "error");
-            resetTransactionStatus();
+        } else {
+            console.log('Allowance existente suficiente:', currentAllowance.toString());
+            setTransactionStep(1);
+            setShowTransactionStatus(true);
+            await handleMintAfterApproval(account.address);
         }
     };
 
@@ -431,6 +451,117 @@ export function TokenMint(props: Props) {
         }
     };
 
+    const setupClaimConditions = async () => {
+        try {
+            // Definir las condiciones con los tipos correctos
+            const conditions = [{
+                startTimestamp: BigInt(0),
+                maxClaimableSupply: BigInt("1000000000000000000000000"),
+                supplyClaimed: BigInt(0),
+                quantityLimitPerWallet: BigInt("1000000000000000000000"),
+                merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
+                pricePerToken: BigInt(7000000),
+                currency: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                metadata: "AGOD Token Minter"
+            }];
+
+            // Convertir las condiciones al formato de array que espera el contrato
+            const formattedConditions = conditions.map(c => [
+                c.startTimestamp,
+                c.maxClaimableSupply,
+                c.supplyClaimed,
+                c.quantityLimitPerWallet,
+                c.merkleRoot,
+                c.pricePerToken,
+                c.currency,
+                c.metadata
+            ] as const);
+
+            // Preparar la transacción usando la firma exacta del contrato
+            const transaction = prepareContractCall({
+                contract: props.contract,
+                method: "function setClaimConditions((uint256,uint256,uint256,uint256,bytes32,uint256,address,string)[],bool)",
+                params: [formattedConditions, false] as const
+            });
+
+            await sendTransaction(transaction, {
+                onSuccess: async () => {
+                    console.log("Claim conditions configuradas exitosamente");
+                    showToast("Claim conditions actualizadas");
+                    
+                    // Verificar la configuración después de actualizar
+                    try {
+                        const { data: claimCondition } = useReadContract({
+                            contract: props.contract,
+                            method: "function getClaimConditionById(uint256) view returns ((uint256,uint256,uint256,uint256,bytes32,uint256,address,string))",
+                            params: [BigInt(0)]
+                        });
+                        
+                        console.log("Nueva configuración:", claimCondition);
+                    } catch (error) {
+                        console.error("Error verificando nueva configuración:", error);
+                    }
+                },
+                onError: (error) => {
+                    console.error("Error configurando claim conditions:", error);
+                    showToast("Error configurando claim conditions", "error");
+                }
+            });
+        } catch (error) {
+            console.error("Error preparando claim conditions:", error);
+            showToast("Error preparando claim conditions", "error");
+        }
+    };
+
+    const verifyContractSetup = async () => {
+        try {
+            const contract = getContract({
+                client,
+                address: props.contract.address,
+                chain: baseChain
+            });
+
+            const { data: claimConditionData } = useReadContract({
+                contract,
+                method: "function getClaimConditionById(uint256) view returns ((uint256,uint256,uint256,uint256,bytes32,uint256,address,string))",
+                params: [BigInt(0)]
+            });
+
+            if (claimConditionData && Array.isArray(claimConditionData) && claimConditionData.length >= 8) {
+                const [
+                    startTimestamp,
+                    maxClaimableSupply,
+                    supplyClaimed,
+                    quantityLimitPerWallet,
+                    merkleRoot,
+                    pricePerToken,
+                    currency,
+                    metadata
+                ] = claimConditionData;
+
+                console.log("Configuración actual del contrato:", {
+                    startTimestamp: startTimestamp?.toString(),
+                    maxClaimableSupply: maxClaimableSupply?.toString(),
+                    supplyClaimed: supplyClaimed?.toString(),
+                    quantityLimitPerWallet: quantityLimitPerWallet?.toString(),
+                    merkleRoot,
+                    pricePerToken: pricePerToken?.toString(),
+                    currency,
+                    metadata
+                });
+                showToast("Configuración verificada, revisa la consola");
+            } else {
+                console.error("No se pudo obtener la configuración");
+                showToast("Error: No se pudo obtener la configuración", "error");
+            }
+        } catch (error) {
+            console.error("Error verificando configuración:", error);
+            showToast("Error al verificar configuración", "error");
+        }
+    };
+
+    const isAdmin = account?.address.toLowerCase() === "0x00c9f7EE6d1808C09B61E561Af6c787060BFE7C9".toLowerCase();
+
     if (props.pricePerToken === null || props.pricePerToken === undefined) {
         console.error("Invalid pricePerToken");
         return null;
@@ -452,6 +583,23 @@ export function TokenMint(props: Props) {
                             <p className="text-sm sm:text-base text-zinc-300 mb-4 sm:mb-8 text-center">
                                 {props.description}
                             </p>
+
+                            {isAdmin && (
+                                <div className="flex flex-col gap-2 mb-4">
+                                    <Button
+                                        variant="outline"
+                                        onClick={setupClaimConditions}
+                                    >
+                                        Configurar Claim Conditions
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={verifyContractSetup}
+                                    >
+                                        Verificar Configuración
+                                    </Button>
+                                </div>
+                            )}
 
                             {showTransactionStatus ? (
                                 <TransactionStatus 
