@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus, Coins } from "lucide-react";
-import { useTheme } from "next-themes";
 import type { ThirdwebContract } from "thirdweb";
 import {
     useActiveAccount,
@@ -19,18 +18,17 @@ import {
 import { client } from "@/lib/thirdwebClient";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { getContract } from "thirdweb/contract";
-import { balanceOf, allowance } from "thirdweb/extensions/erc20";
+import { balanceOf } from "thirdweb/extensions/erc20";
 import React from "react";
 import { toast } from "sonner";
-import { useSpring, animated } from "react-spring";
 import CountUp from "react-countup";
-import { claimTo } from "thirdweb/extensions/erc20";
 import { Button } from "@/components/ui/button";
 import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
-import { useReCaptcha } from "../hooks/use-recaptcha";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useReCaptcha } from "@/hooks/use-recaptcha";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { prepareContractCall } from "thirdweb";
+import { useTokenMintLogic, TransactionStep } from './token-mint-logic';
 
 const enhancedToastStyle = {
     style: {
@@ -122,19 +120,19 @@ function StyledConnectButton() {
 
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
-    const { theme } = useTheme();
+    const [tokenBalance, setTokenBalance] = useState<number>(0);
+    const [transactionStep, setTransactionStep] = useState<TransactionStep>(-1);
+    const [showTransactionStatus, setShowTransactionStatus] = useState(false);
+    const [isChangingChain, setIsChangingChain] = useState(false);
+    const { verifyHuman, isReady: isRecaptchaReady } = useReCaptcha();
     const account = useActiveAccount();
     const { mutate: sendTransaction, isPending } = useSendTransaction();
-    const [tokenBalance, setTokenBalance] = useState<number>(0);
     const activeWallet = useActiveWallet();
     const switchChain = useSwitchActiveWalletChain();
     const currentChain = useActiveWalletChain();
-    const [isChangingChain, setIsChangingChain] = useState(false);
-    const [transactionStep, setTransactionStep] = useState(-1);
-    const [showTransactionStatus, setShowTransactionStatus] = useState(false);
-    const { verifyHuman, isReady: isRecaptchaReady } = useReCaptcha();
 
-    const updateBalance = async () => {
+    // Mover updateBalance aquí
+    const updateBalance = useCallback(async () => {
         if (account && props.contract) {
             try {
                 const contract = getContract({
@@ -155,7 +153,33 @@ export function TokenMint(props: Props) {
                 console.error("Error fetching balance:", error);
             }
         }
-    };
+    }, [account, props.contract]);
+
+    // Crear una función wrapper para asegurar el tipo correcto
+    const handleTransactionStep = useCallback((step: number) => {
+        if (step >= -1 && step <= 3) {
+            setTransactionStep(step as TransactionStep);
+        }
+    }, []);
+
+    const {
+        handleMint,
+        handleMintAfterApproval,
+    } = useTokenMintLogic({
+        contract: props.contract,
+        account,
+        sendTransaction,
+        isPending,
+        setTransactionStep: handleTransactionStep,
+        setShowTransactionStatus,
+        quantity,
+        isRecaptchaReady,
+        verifyHuman: async () => {
+            const token = await verifyHuman();
+            return token;
+        },
+        updateBalance
+    });
 
     useEffect(() => {
         if (account) {
@@ -165,7 +189,7 @@ export function TokenMint(props: Props) {
         } else {
             setTokenBalance(0);
         }
-    }, [account, props.contract]);
+    }, [account, updateBalance, props.contract]);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
@@ -180,7 +204,7 @@ export function TokenMint(props: Props) {
                 clearInterval(intervalId);
             }
         };
-    }, [account, props.contract]);
+    }, [account, updateBalance, props.contract]);
 
     useEffect(() => {
         let isHandlingSwitch = false;
@@ -208,8 +232,8 @@ export function TokenMint(props: Props) {
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [activeWallet, account, currentChain, switchChain]);
-        
+    }, [activeWallet, account, currentChain, switchChain, isChangingChain]);
+
     if (isChangingChain) {
         showToast("Cambio de red en proceso, por favor espera...", "error");
         return;
@@ -240,189 +264,6 @@ export function TokenMint(props: Props) {
             setShowTransactionStatus(false);
             setTransactionStep(-1);
         }, 3000);
-    };
-
-    const handleMint = async () => {
-        if (!account) {
-            showToast("Por favor conecta tu wallet primero", "error");
-            return;
-        }
-
-        if (!isRecaptchaReady) {
-            showToast("El sistema de seguridad se está inicializando. Por favor, espera un momento.", "error");
-            return;
-        }
-
-        // Verificación de red mejorada
-        if (!currentChain || currentChain.id !== baseChain.id) {
-            showToast("Por favor, conecta tu wallet a la red Base", "error");
-            try {
-                await switchChain(baseChain);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                console.error("Error switching chain:", error);
-                showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
-                resetTransactionStatus();
-                return;
-            }
-        }
-
-        // Verify human interaction first
-        const token = await verifyHuman();
-        if (!token) {
-            showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
-            return;
-        }
-
-        setShowTransactionStatus(true);
-        setTransactionStep(0);
-
-        const usdcContract = getContract({
-            client,
-            address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-            chain: baseChain
-        });
-
-        const PRICE_PER_TOKEN = 0.007;
-        const DECIMALS = 6;
-        const pricePerTokenInBaseUnits = BigInt(Math.floor(PRICE_PER_TOKEN * Math.pow(10, DECIMALS)));
-        const totalAmount = pricePerTokenInBaseUnits * BigInt(quantity);
-
-        // Verificar balance y allowance
-        const [usdcBalance, currentAllowance] = await Promise.all([
-            balanceOf({
-                contract: usdcContract,
-                address: account.address
-            }),
-            allowance({
-                contract: usdcContract,
-                spender: props.contract.address,
-                owner: account.address
-            })
-        ]);
-
-        if (usdcBalance < totalAmount) {
-            const requiredUSDC = Number(totalAmount) / Math.pow(10, DECIMALS);
-            showToast(`Necesitas ${requiredUSDC.toFixed(3)} USDC para mintear`, "error");
-            resetTransactionStatus();
-            return;
-        }
-
-        // Si necesitamos aprobación
-        if (currentAllowance < totalAmount) {
-            setTransactionStep(0);
-            setShowTransactionStatus(true);
-
-            const approvalTx = {
-                contract: usdcContract,
-                functionName: "approve",
-                args: [props.contract.address, BigInt("1000000000")],
-                chain: baseChain,
-                client: client
-            };
-
-            try {
-                await sendTransaction(approvalTx, {
-                    onSuccess: async () => {
-                        console.log("Aprobación iniciada");
-                        setTransactionStep(1);
-                        
-                        await new Promise(wait => setTimeout(wait, 30000));
-                        
-                        try {
-                            const newAllowance = await allowance({
-                                contract: usdcContract,
-                                spender: props.contract.address,
-                                owner: account.address
-                            });
-
-                            console.log('Nuevo allowance:', newAllowance.toString());
-                            console.log('Amount necesario:', totalAmount.toString());
-                            console.log('Diferencia:', (newAllowance - totalAmount).toString());
-
-                            if (newAllowance >= BigInt("1000000000")) {
-                                console.log("Allowance confirmado, procediendo con el minteo");
-                                await handleMintAfterApproval(account.address);
-                            } else {
-                                console.error("Allowance insuficiente después de aprobación");
-                                showToast("Error: La aprobación no se confirmó correctamente. Por favor, intenta de nuevo.", "error");
-                                resetTransactionStatus();
-                            }
-                        } catch (error) {
-                            console.error("Error verificando allowance:", error);
-                            showToast("Error verificando la aprobación", "error");
-                            resetTransactionStatus();
-                        }
-                    },
-                    onError: (error) => {
-                        console.error("Error en aprobación:", error);
-                        if (error.message?.includes("user rejected")) {
-                            showToast("Aprobación cancelada por el usuario", "error");
-                        } else if (error.message?.includes("insufficient funds")) {
-                            showToast("Balance insuficiente para la aprobación", "error");
-                        } else {
-                            showToast("Error en la aprobación de USDC", "error");
-                        }
-                        resetTransactionStatus();
-                    }
-                });
-            } catch (error) {
-                console.error("Error en aprobación:", error);
-                showToast("Error en la aprobación de USDC", "error");
-                resetTransactionStatus();
-                return;
-            }
-        } else {
-            console.log('Allowance existente suficiente:', currentAllowance.toString());
-            setTransactionStep(1);
-            setShowTransactionStatus(true);
-            await handleMintAfterApproval(account.address);
-        }
-    };
-
-    const handleMintAfterApproval = async (accountAddress: string) => {
-        try {
-            console.log("Iniciando minteo para:", accountAddress);
-            
-            // Mantenemos la transacción simple
-            const transaction = claimTo({
-                contract: props.contract,
-                to: accountAddress,
-                quantity: String(quantity),
-            });
-
-            console.log("Transacción preparada:", transaction);
-
-            // Agregamos opciones de transacción sin modificar la estructura
-            await sendTransaction(transaction, {
-                onSuccess: () => {
-                    setTransactionStep(2);
-                    setTimeout(() => {
-                        setTransactionStep(3);
-                        showToast("¡Tokens minteados exitosamente!");
-                        updateBalance();
-                        resetTransactionStatus();
-                    }, 2000);
-                },
-                onError: (error) => {
-                    console.error("Error detallado del minteo:", error);
-                    if (error.message?.includes("user rejected")) {
-                        showToast("Transacción cancelada por el usuario", "error");
-                    } else if (error.message?.includes("insufficient funds")) {
-                        showToast("USDC insuficiente para el minteo", "error");
-                    } else if (error.message?.includes("exceeds allowance")) {
-                        showToast("Error de aprobación. Por favor, intenta de nuevo.", "error");
-                    } else {
-                        showToast("Error en el minteo. Por favor, inténtalo de nuevo.", "error");
-                    }
-                    resetTransactionStatus();
-                }
-            });
-        } catch (error) {
-            console.error("Error preparando minteo:", error);
-            showToast("Error preparando el minteo", "error");
-            resetTransactionStatus();
-        }
     };
 
     const handleAddToWallet = async () => {
@@ -575,6 +416,24 @@ export function TokenMint(props: Props) {
         return null;
     }
 
+    // Agregar efecto para mensajes de estado
+    useEffect(() => {
+        if (showTransactionStatus) {
+            const messages: Record<number, string> = {
+                0: "Solicitando aprobación de USDC...",
+                1: "Esperando confirmación de la aprobación...",
+                2: "Minteando tokens AGOD...",
+                3: "¡Transacción completada exitosamente!"
+            };
+            
+            const message = transactionStep >= 0 && transactionStep <= 3 ? 
+                messages[transactionStep] : 
+                "Procesando...";
+
+            showToast(message, transactionStep === 3 ? "success" : undefined);
+        }
+    }, [transactionStep, showTransactionStatus]);
+
     return (
         <div className="flex flex-col items-center justify-center">
             {!account ? (
@@ -712,3 +571,6 @@ export function TokenMint(props: Props) {
         </div>
     );
 }
+
+
+
