@@ -30,6 +30,7 @@ import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
 import { CountdownTimer } from "./countdown-timer";
 
+// Enhanced toast styles with consistent gradient and styling
 const enhancedToastStyle = {
     style: {
         background: "linear-gradient(to right, #9333ea, #db2777)",
@@ -43,6 +44,7 @@ const enhancedToastStyle = {
     duration: 5000,
 };
 
+// Helper function to show consistent toast messages
 const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     if (type === 'success') {
         toast.success(message, enhancedToastStyle);
@@ -63,10 +65,7 @@ type Props = {
 
 function formatBalance(balance: number): string {
     const formatted = balance / 1e18;
-    return formatted.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+    return formatted.toString().replace(/\.?0+$/, '');
 }
 
 function StyledConnectButton() {
@@ -209,14 +208,15 @@ export function TokenMint(props: Props) {
             }
         };
 
+        // Debounce para evitar múltiples llamadas
         const timeoutId = setTimeout(() => {
-            handleChainSwitch();
+        handleChainSwitch();
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [activeWallet, account, currentChain, switchChain]);
+     }, [activeWallet, account, currentChain, switchChain]);
         
-    if (isChangingChain) {
+     if (isChangingChain) {
         showToast("Cambio de red en proceso, por favor espera...", "error");
         return;
     }
@@ -295,6 +295,7 @@ export function TokenMint(props: Props) {
                     setTimeout(() => {
                         setTransactionStep(3);
                         console.log("%cMint successful", "color: green; font-weight: bold;");
+                        // Show success toast only after transaction is fully completed
                         setTimeout(() => {
                             showToast("¡Tokens minteados exitosamente!");
                         }, 1000);
@@ -304,6 +305,7 @@ export function TokenMint(props: Props) {
                 },
                 onError: (error) => {
                     console.error("%cMint error", "color: red; font-weight: bold;", error);
+                    // Personalizar mensajes de error específicos
                     if (error.message.includes("Claim condition not found")) {
                         showToast("El minteo aún no está disponible. Por favor, espera al lanzamiento oficial.", "error");
                     } else if (error.message.includes("Failed to estimate cost")) {
@@ -383,8 +385,6 @@ export function TokenMint(props: Props) {
                                     onChange={handleQuantityChange}
                                     className="w-28 text-center text-white font-mono rounded-none border-x-0 pl-6 border-zinc-800 bg-transparent"
                                     min="1"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
                                 />
 
                                 <Button
@@ -398,12 +398,10 @@ export function TokenMint(props: Props) {
                             </div>
 
                             <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
-                                Total: <CountUp 
-                                    end={props.pricePerToken * quantity} 
-                                    decimals={2}
-                                    separator=","
-                                    decimal="."
-                                /> {props.currencySymbol}
+                                    Total: <CountUp 
+                                        end={props.pricePerToken * quantity} 
+                                        decimals={1}  // Asegura que se muestren los decimales
+                                    /> {props.currencySymbol}
                             </div>
 
                             <div className="text-xs pr-1 text-zinc-400 font-mono mt-1">
@@ -417,17 +415,17 @@ export function TokenMint(props: Props) {
 
                 <CardFooter className="flex flex-col items-center justify-center">
                     <div className="flex flex-col items-center justify-center w-full">
-                        <Button
-                            variant="gradient"
-                            className="flex-1"
-                            onClick={handleMint}
-                            disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
+                    <Button
+                        variant="gradient"
+                        className="flex-1"
+                        onClick={handleMint}
+                        disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
                         >
-                            {isPending ? "Minting..." : 
-                            isChangingChain ? "Cambiando Red..." : 
-                            !isRecaptchaReady ? "Inicializando Seguridad..." :
-                            `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
-                        </Button>
+                        {isPending ? "Minting..." : 
+                        isChangingChain ? "Cambiando Red..." : 
+                        !isRecaptchaReady ? "Inicializando Seguridad..." :
+                        `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
+                    </Button>
                         <StyledConnectButton />
                     </div>
                 </CardFooter>
@@ -435,3 +433,4 @@ export function TokenMint(props: Props) {
         </div>
     );
 }
+
