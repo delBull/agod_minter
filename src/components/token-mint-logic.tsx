@@ -16,6 +16,8 @@ import { toast } from "sonner";
 const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const PRICE_PER_TOKEN = 0.007;
 const DECIMALS = 6;
+const TOAST_DURATION = 8000;
+const WAIT_DURATION = 10000; // 10 segundos de espera para confirmaciones
 
 export type TransactionStep = -1 | 0 | 1 | 2 | 3;
 
@@ -40,7 +42,7 @@ const showToast = (message: string, type: 'success' | 'error' = 'success') => {
             boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
             border: "none",
         },
-        duration: 5000,
+        duration: TOAST_DURATION,
     };
 
     if (type === 'error') {
@@ -49,6 +51,22 @@ const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         toast.success(message, options);
     }
 };
+
+// Definir los tipos para la estructura del contrato
+interface AllowlistProof {
+    proof: readonly `0x${string}`[];
+    quantityLimitPerWallet: bigint;
+    pricePerToken: bigint;
+    currency: string;
+}
+
+interface ClaimParams {
+    receiver: string;
+    quantity: bigint;
+    currency: string;
+    pricePerToken: bigint;
+    allowlistProof: AllowlistProof;
+}
 
 export const useTokenMintLogic = (props: Props) => {
     const account = useActiveAccount();
@@ -81,6 +99,10 @@ export const useTokenMintLogic = (props: Props) => {
         }
 
         try {
+            console.log("Iniciando proceso de minteo...");
+            console.log("Cuenta:", account.address);
+            console.log("Cantidad:", props.quantity);
+
             const token = await props.verifyHuman();
             if (!token) {
                 showToast("Error en la verificación de seguridad", "error");
@@ -90,23 +112,38 @@ export const useTokenMintLogic = (props: Props) => {
             const totalAmount = BigInt(Math.floor(PRICE_PER_TOKEN * props.quantity * Math.pow(10, DECIMALS)));
             const currentAllowance = BigInt(allowanceData?.toString() || "0");
 
+            console.log("Verificación de allowance:", {
+                totalAmount: totalAmount.toString(),
+                currentAllowance: currentAllowance.toString(),
+                needsApproval: currentAllowance < totalAmount
+            });
+
             if (currentAllowance < totalAmount) {
                 props.setTransactionStep(0);
                 props.setShowTransactionStatus(true);
 
                 try {
-                    // Preparar la transacción de aprobación
+                    console.log("Preparando transacción de aprobación...");
                     const approvalTx = await prepareContractCall({
                         contract: usdcContract,
                         method: "function approve(address spender, uint256 amount)",
                         params: [props.contract.address, totalAmount]
                     });
 
+                    console.log("Transacción de aprobación preparada:", approvalTx);
+                    showToast("Esperando aprobación en MetaMask...");
+                    
                     await sendTransaction(approvalTx);
-                    showToast("Aprobación exitosa");
+                    console.log("Aprobación enviada");
+                    showToast("Aprobación enviada, esperando confirmación...");
                     props.setTransactionStep(1);
+                    
+                    console.log("Esperando confirmación...");
+                    await new Promise(resolve => setTimeout(resolve, WAIT_DURATION));
+                    console.log("Procediendo con el minteo...");
                     await handleMintAfterApproval();
                 } catch (error: any) {
+                    console.error("Error en aprobación:", error);
                     handleTransactionError(error, "aprobación");
                 }
                 return;
@@ -114,6 +151,7 @@ export const useTokenMintLogic = (props: Props) => {
 
             await handleMintAfterApproval();
         } catch (error: any) {
+            console.error("Error en proceso:", error);
             handleTransactionError(error, "proceso");
         }
     };
@@ -122,22 +160,99 @@ export const useTokenMintLogic = (props: Props) => {
         if (!account?.address) return;
 
         props.setTransactionStep(2);
-        showToast("Iniciando minteo...");
+        showToast("Iniciando minteo...", "success");
 
         try {
-            // Preparar la transacción de minteo
+            console.log("Preparando transacción de minteo...");
+            
+            // Usar la cantidad del input del usuario
+            const mintAmount = BigInt(props.quantity) * BigInt("1000000000000000000"); // 18 decimales
+            const pricePerToken = BigInt(7000); // 0.007 USDC con 6 decimales
+
+            // Preparar los parámetros según la estructura del contrato
+            const allowlistProof: AllowlistProof = {
+                proof: ["0x0000000000000000000000000000000000000000000000000000000000000000"] as readonly `0x${string}`[],
+                quantityLimitPerWallet: BigInt("100000000000000000000000000"),
+                pricePerToken,
+                currency: USDC_ADDRESS
+            };
+
+            const claimParams: ClaimParams = {
+                receiver: account.address,
+                quantity: mintAmount,
+                currency: USDC_ADDRESS,
+                pricePerToken,
+                allowlistProof
+            };
+
+            console.log("Parámetros de minteo:", {
+                ...claimParams,
+                quantity: claimParams.quantity.toString(),
+                pricePerToken: claimParams.pricePerToken.toString(),
+                allowlistProof: {
+                    ...claimParams.allowlistProof,
+                    quantityLimitPerWallet: claimParams.allowlistProof.quantityLimitPerWallet.toString(),
+                    pricePerToken: claimParams.allowlistProof.pricePerToken.toString()
+                }
+            });
+
             const mintTx = await prepareContractCall({
                 contract: props.contract,
-                method: "function claim(address receiver, uint256 quantity)",
-                params: [account.address, BigInt(props.quantity)]
+                method: {
+                    name: "claim",
+                    type: "function" as const,
+                    inputs: [
+                        { type: "address", name: "_receiver" },
+                        { type: "uint256", name: "_quantity" },
+                        { type: "address", name: "_currency" },
+                        { type: "uint256", name: "_pricePerToken" },
+                        {
+                            type: "tuple",
+                            name: "_allowlistProof",
+                            components: [
+                                { type: "bytes32[]", name: "proof" },
+                                { type: "uint256", name: "quantityLimitPerWallet" },
+                                { type: "uint256", name: "pricePerToken" },
+                                { type: "address", name: "currency" }
+                            ]
+                        }
+                    ],
+                    outputs: [],
+                    stateMutability: "payable" as const
+                },
+                params: [
+                    claimParams.receiver,
+                    claimParams.quantity,
+                    claimParams.currency,
+                    claimParams.pricePerToken,
+                    claimParams.allowlistProof
+                ]
+            });
+
+            console.log("Transacción de minteo preparada:", {
+                to: mintTx.to,
+                data: mintTx.data
             });
 
             await sendTransaction(mintTx);
+            console.log("Minteo enviado");
+            showToast("Transacción enviada, esperando confirmación en la blockchain...");
+            
+            await new Promise(resolve => setTimeout(resolve, WAIT_DURATION));
+            
             props.setTransactionStep(3);
             showToast("¡Tokens minteados exitosamente!");
-            props.updateBalance();
-            props.setShowTransactionStatus(false);
+            console.log("Actualizando balance...");
+            await props.updateBalance();
+            setTimeout(() => {
+                props.setShowTransactionStatus(false);
+            }, TOAST_DURATION);
         } catch (error: any) {
+            console.error("Error en minteo:", {
+                error,
+                message: error?.message,
+                data: error?.data
+            });
             handleTransactionError(error, "minteo");
         }
     };
