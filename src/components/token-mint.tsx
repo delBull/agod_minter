@@ -29,7 +29,6 @@ import { Button } from "@/components/ui/button";
 import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
 import { useReCaptcha } from "../hooks/use-recaptcha";
-import { CountdownTimer } from "./countdown-timer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const enhancedToastStyle = {
@@ -99,7 +98,7 @@ function StyledConnectButton() {
     }, []);
 
     return (
-        <div className="relative mt-10 mb-10">
+        <div className="relative my-4">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-50" />
             <div className="w-96 h-0 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
                 <div className="rounded-lg z-10">
@@ -442,90 +441,85 @@ export function TokenMint(props: Props) {
         return null;
     }
 
-    if (!account) {
-        return (
-            <div className="flex flex-col items-center justify-center -mt-32">
-                <CountdownTimer />
-                <StyledConnectButton />
-            </div>
-        );
-    }
-
     return (
         <div className="flex flex-col items-center justify-center">
-            <Card className="w-full max-w-xl p-8 animate-fadeIn">
-                <CardContent className="flex flex-col items-center justify-center">
-                    <h2 className="text-2xl font-bold mb-2 text-zinc-100">
-                        {props.displayName}
-                    </h2>
-                    <p className="text-zinc-300 mb-8 text-center">
-                        {props.description}
-                    </p>
+            {!account ? (
+                <div className="flex flex-col items-center justify-center ">
+                    <StyledConnectButton />
+                </div>
+            ) : (
+                <Card className="w-full max-w-xl p-4 sm:p-8 animate-fadeIn mx-4 sm:mx-0">
+                    <CardContent className="flex flex-col items-center justify-center">
+                        <h2 className="text-xl sm:text-2xl font-bold mb-2 text-zinc-100">
+                            {props.displayName}
+                        </h2>
+                        <p className="text-sm sm:text-base text-zinc-300 mb-4 sm:mb-8 text-center">
+                            {props.description}
+                        </p>
 
-                    {showTransactionStatus ? (
-                        <TransactionStatus 
-                            currentStep={transactionStep} 
-                            isVisible={showTransactionStatus} 
-                        />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center mb-4">
-                            <div className="text-xs text-center font-medium font-mono text-zinc-400 mb-2">
-                                AGOD Token está en la red Base, <br />conctate a ella para mintear.
+                        {showTransactionStatus ? (
+                            <TransactionStatus 
+                                currentStep={transactionStep} 
+                                isVisible={showTransactionStatus} 
+                            />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center mb-4">
+                                <div className="text-xs text-center font-medium font-mono text-zinc-400 mb-2">
+                                    AGOD Token está en la red Base, <br />conctate a ella para mintear.
+                                </div>
+                                <div className="flex items-center">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={decreaseQuantity}
+                                        disabled={quantity <= 0}
+                                        className="rounded-r-none border-zinc-800"
+                                    >
+                                        <Minus className="h-4 w-4" />
+                                    </Button>
+
+                                    <Input
+                                        type="text"
+                                        value={quantity === 0 ? "" : quantity}
+                                        onChange={handleQuantityChange}
+                                        className="w-28 text-center text-white font-mono rounded-none border-x-0 pl-6 border-zinc-800 bg-transparent"
+                                        placeholder="0"
+                                        onFocus={(e) => e.target.select()}
+                                    />
+
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={increaseQuantity}
+                                        className="rounded-l-none border-zinc-800"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+
+                                <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
+                                    Total: <CountUp 
+                                        end={0.007 * quantity}
+                                        decimals={3}
+                                        separator=","
+                                        decimal="."
+                                    /> {props.currencySymbol}
+                                </div>
+
+                                <div className="text-xs pr-1 text-zinc-400 font-mono mt-1">
+                                    {tokenBalance > 0 
+                                        ? `Tienes ${formatBalance(tokenBalance)} AGOD Tokens`
+                                        : "Aún no tienes AGOD Tokens"}
+                                </div>
                             </div>
-                            <div className="flex items-center">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={decreaseQuantity}
-                                    disabled={quantity <= 0}
-                                    className="rounded-r-none border-zinc-800"
-                                >
-                                    <Minus className="h-4 w-4" />
-                                </Button>
+                        )}
+                    </CardContent>
 
-                                <Input
-                                    type="text"
-                                    value={quantity === 0 ? "" : quantity}
-                                    onChange={handleQuantityChange}
-                                    className="w-28 text-center text-white font-mono rounded-none border-x-0 pl-6 border-zinc-800 bg-transparent"
-                                    placeholder="0"
-                                    onFocus={(e) => e.target.select()}
-                                />
-
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={increaseQuantity}
-                                    className="rounded-l-none border-zinc-800"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </Button>
-                            </div>
-
-                            <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
-                                Total: <CountUp 
-                                    end={0.007 * quantity}
-                                    decimals={3}
-                                    separator=","
-                                    decimal="."
-                                /> {props.currencySymbol}
-                            </div>
-
-                            <div className="text-xs pr-1 text-zinc-400 font-mono mt-1">
-                                {tokenBalance > 0 
-                                    ? `Tienes ${formatBalance(tokenBalance)} AGOD Tokens`
-                                    : "Aún no tienes AGOD Tokens"}
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-
-                <CardFooter className="flex flex-col items-center justify-center">
-                    <div className="flex flex-col items-center justify-center w-full">
-                        <div className="flex items-center gap-2 w-96">
+                    <CardFooter className="flex flex-col items-center justify-center">
+                        <div className="flex items-center gap-2 w-full sm:w-96 px-2 sm:px-0">
                             <Button
                                 variant="gradient"
-                                className="flex-1 h-10 text-sm"
+                                className="flex-1 h-10 text-xs sm:text-sm"
                                 onClick={handleMint}
                                 disabled={isPending || isChangingChain || showTransactionStatus || !isRecaptchaReady}
                             >
@@ -535,14 +529,14 @@ export function TokenMint(props: Props) {
                                 `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
                             </Button>
                             
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md" />
                                 <TooltipProvider>
                                     <Tooltip delayDuration={100}>
                                         <TooltipTrigger asChild>
                                             <button
                                                 onClick={handleAddToWallet}
-                                                className="relative px-4 h-10 rounded-md bg-transparent flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-100 hover:text-zinc-200 transition-colors border border-transparent hover:border-zinc-700"
+                                                className="relative px-3 sm:px-4 h-10 rounded-md bg-transparent flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-100 hover:text-zinc-200 transition-colors border border-transparent hover:border-zinc-700"
                                             >
                                                 <span>AGOD</span>
                                                 <Coins className="h-4 w-4" />
@@ -555,10 +549,13 @@ export function TokenMint(props: Props) {
                                 </TooltipProvider>
                             </div>
                         </div>
-                        <StyledConnectButton />
-                    </div>
-                </CardFooter>
-            </Card>
+
+                        <div className="mt-4">
+                            <StyledConnectButton />
+                        </div>
+                    </CardFooter>
+                </Card>
+            )}
         </div>
     );
 }
