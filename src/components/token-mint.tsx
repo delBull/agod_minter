@@ -90,15 +90,8 @@ function StyledConnectButton() {
         createWallet("walletConnect"),
     ];
 
-    const handleConnect = useCallback((wallet: any) => {
-        console.log("%cWallet Connected", "color: green; font-weight: bold;");
-        console.log("  Wallet:", wallet.id);
-        console.log("  Chain:", wallet.getChain());
-        showToast("¡Wallet conectada exitosamente!");
-    }, []);
-
     return (
-        <div className="relative my-4">
+        <div className="relative mt-10 mb-10">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-50" />
             <div className="w-96 h-0 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
                 <div className="rounded-lg z-10">
@@ -119,7 +112,6 @@ function StyledConnectButton() {
                             className: "bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
                         }}
                         locale="es_ES"
-                        onConnect={handleConnect}
                     />
                 </div>
             </div>
@@ -255,10 +247,32 @@ export function TokenMint(props: Props) {
             return;
         }
 
+        if (!isRecaptchaReady) {
+            showToast("El sistema de seguridad se está inicializando. Por favor, espera un momento.", "error");
+            return;
+        }
+
         try {
+            // Verify human interaction first
+            const token = await verifyHuman();
+            if (!token) {
+                showToast("Error en la verificación de seguridad. Por favor, inténtalo de nuevo.", "error");
+                return;
+            }
+
+            setShowTransactionStatus(true);
+            setTransactionStep(0);
+
             if (!currentChain || currentChain.id !== baseChain.id) {
-                await switchChain(baseChain);
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                try {
+                    await switchChain(baseChain);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                } catch (error) {
+                    console.error("Error switching chain:", error);
+                    showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
+                    resetTransactionStatus();
+                    return;
+                }
             }
 
             const usdcContract = getContract({
@@ -288,6 +302,7 @@ export function TokenMint(props: Props) {
             if (usdcBalance < totalAmount) {
                 const requiredUSDC = Number(totalAmount) / Math.pow(10, DECIMALS);
                 showToast(`Necesitas ${requiredUSDC.toFixed(3)} USDC para mintear`, "error");
+                resetTransactionStatus();
                 return;
             }
 
@@ -299,7 +314,7 @@ export function TokenMint(props: Props) {
                 const approvalTx = {
                     contract: usdcContract,
                     functionName: "approve",
-                    args: [props.contract.address, totalAmount * BigInt(100)],
+                    args: [props.contract.address, totalAmount * BigInt(1000)],
                     chain: baseChain,
                     client: client
                 };
@@ -309,35 +324,16 @@ export function TokenMint(props: Props) {
                         onSuccess: async () => {
                             console.log("Aprobación iniciada");
                             setTransactionStep(1);
-                            
-                            // Esperamos un tiempo fijo antes de mintear
-                            await new Promise(wait => setTimeout(wait, 15000));
-                            
-                            try {
-                                const finalAllowance = await allowance({
-                                    contract: usdcContract,
-                                    spender: props.contract.address,
-                                    owner: account.address
-                                });
-
-                                console.log('Allowance final:', finalAllowance.toString());
-                                console.log('Amount necesario:', totalAmount.toString());
-
-                                if (finalAllowance >= totalAmount) {
-                                    await handleMintAfterApproval(account.address);
-                                } else {
-                                    showToast("Error en la aprobación. Por favor, intenta de nuevo.", "error");
-                                    resetTransactionStatus();
-                                }
-                            } catch (error) {
-                                console.error("Error en verificación final:", error);
-                                showToast("Error verificando la aprobación", "error");
-                                resetTransactionStatus();
-                            }
+                            await new Promise(wait => setTimeout(wait, 10000));
+                            await handleMintAfterApproval(account.address);
                         },
                         onError: (error) => {
                             console.error("Error en aprobación:", error);
-                            showToast("Error en la aprobación de USDC", "error");
+                            if (error.message?.includes("user rejected")) {
+                                showToast("Aprobación cancelada por el usuario", "error");
+                            } else {
+                                showToast("Error en la aprobación de USDC", "error");
+                            }
                             resetTransactionStatus();
                         }
                     });
@@ -353,7 +349,7 @@ export function TokenMint(props: Props) {
                 await handleMintAfterApproval(account.address);
             }
 
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error general:", error);
             showToast("Error inesperado. Por favor, inténtalo de nuevo.", "error");
             resetTransactionStatus();
@@ -363,6 +359,8 @@ export function TokenMint(props: Props) {
     const handleMintAfterApproval = async (accountAddress: string) => {
         try {
             console.log("Iniciando minteo para:", accountAddress);
+            
+            // Mantenemos la transacción simple
             const transaction = claimTo({
                 contract: props.contract,
                 to: accountAddress,
@@ -371,6 +369,7 @@ export function TokenMint(props: Props) {
 
             console.log("Transacción preparada:", transaction);
 
+            // Agregamos opciones de transacción sin modificar la estructura
             await sendTransaction(transaction, {
                 onSuccess: () => {
                     setTransactionStep(2);
@@ -383,7 +382,11 @@ export function TokenMint(props: Props) {
                 },
                 onError: (error) => {
                     console.error("Error detallado del minteo:", error);
-                    showToast("Error en el minteo. Por favor, inténtalo de nuevo.", "error");
+                    if (error.message?.includes("user rejected")) {
+                        showToast("Transacción cancelada por el usuario", "error");
+                    } else {
+                        showToast("Error en el minteo. Por favor, inténtalo de nuevo.", "error");
+                    }
                     resetTransactionStatus();
                 }
             });
