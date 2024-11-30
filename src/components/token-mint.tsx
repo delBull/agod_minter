@@ -299,7 +299,7 @@ export function TokenMint(props: Props) {
                 const approvalTx = {
                     contract: usdcContract,
                     functionName: "approve",
-                    args: [props.contract.address, totalAmount * BigInt(3)],
+                    args: [props.contract.address, totalAmount * BigInt(100)],
                     chain: baseChain,
                     client: client
                 };
@@ -310,14 +310,28 @@ export function TokenMint(props: Props) {
                             console.log("Aprobación iniciada");
                             setTransactionStep(1);
                             
-                            // Esperamos un tiempo fijo y procedemos con el minteo
-                            await new Promise(wait => setTimeout(wait, 5000));
+                            // Esperamos un tiempo fijo antes de mintear
+                            await new Promise(wait => setTimeout(wait, 15000));
                             
                             try {
-                                await handleMintAfterApproval(account.address);
+                                const finalAllowance = await allowance({
+                                    contract: usdcContract,
+                                    spender: props.contract.address,
+                                    owner: account.address
+                                });
+
+                                console.log('Allowance final:', finalAllowance.toString());
+                                console.log('Amount necesario:', totalAmount.toString());
+
+                                if (finalAllowance >= totalAmount) {
+                                    await handleMintAfterApproval(account.address);
+                                } else {
+                                    showToast("Error en la aprobación. Por favor, intenta de nuevo.", "error");
+                                    resetTransactionStatus();
+                                }
                             } catch (error) {
-                                console.error("Error en el minteo después de la aprobación:", error);
-                                showToast("Error en el minteo. Por favor, inténtalo de nuevo.", "error");
+                                console.error("Error en verificación final:", error);
+                                showToast("Error verificando la aprobación", "error");
                                 resetTransactionStatus();
                             }
                         },
@@ -334,7 +348,6 @@ export function TokenMint(props: Props) {
                     return;
                 }
             } else {
-                // Si ya tenemos la aprobación, procedemos directamente con el minteo
                 setTransactionStep(1);
                 setShowTransactionStatus(true);
                 await handleMintAfterApproval(account.address);
@@ -349,13 +362,16 @@ export function TokenMint(props: Props) {
 
     const handleMintAfterApproval = async (accountAddress: string) => {
         try {
+            console.log("Iniciando minteo para:", accountAddress);
             const transaction = claimTo({
                 contract: props.contract,
                 to: accountAddress,
                 quantity: String(quantity),
             });
 
-            sendTransaction(transaction, {
+            console.log("Transacción preparada:", transaction);
+
+            await sendTransaction(transaction, {
                 onSuccess: () => {
                     setTransactionStep(2);
                     setTimeout(() => {
@@ -425,7 +441,7 @@ export function TokenMint(props: Props) {
                 </div>
             ) : (
                 <div className="-mt-8 sm:mt-0">
-                    <Card className="w-full max-w-xl p-4 sm:p-8 animate-fadeIn mx-4 sm:mx-0">
+                    <Card className="w-full max-w-sm md:max-w-xl p-4 sm:p-8 animate-fadeIn mx-4 sm:mx-0 -mt-12 md:-mt-5">
                         <CardContent className="flex flex-col items-center justify-center">
                             <h2 className="text-xl sm:text-2xl font-bold mb-2 text-zinc-100">
                                 {props.displayName}

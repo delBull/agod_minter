@@ -26,7 +26,7 @@ function Header(): JSX.Element {
           className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full h-full"
         />
       </div>
-      <div className="relative z-10 flex flex-col items-center justify-center py-8">
+      <div className="relative z-10 flex flex-col items-center justify-center py-4 mt-12 md:mt-10">
         <Image
           src="/icon.png"
           height={150}
@@ -38,13 +38,13 @@ function Header(): JSX.Element {
           }}
         />
 
-        <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-6 text-zinc-100">
+        <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-0 md:mb-6 text-zinc-100">
           AGOD Token
           <span className="text-zinc-300 inline-block mx-1"> · </span>
           <span className="inline-block -skew-x-6 text-red-500"> Minter </span>
         </h1>
 
-        <p className="text-zinc-300 text-base">
+        <p className="text-zinc-300 text-base ">
           Abre la puerta tu{" "}
           <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
             UNIVERSO
