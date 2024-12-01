@@ -8,49 +8,26 @@ import type { ThirdwebContract } from "thirdweb";
 import {
     useActiveAccount,
     ConnectButton,
-    useSendTransaction,
     useActiveWallet,
     darkTheme,
     useSwitchActiveWalletChain,
     useActiveWalletChain,
-    useReadContract
+    useSendTransaction
 } from "thirdweb/react";
 import { client } from "@/lib/thirdwebClient";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { getContract } from "thirdweb/contract";
 import { balanceOf } from "thirdweb/extensions/erc20";
-import React from "react";
 import { toast } from "sonner";
 import CountUp from "react-countup";
 import { Button } from "@/components/ui/button";
 import { baseChain } from "@/lib/chains";
 import { TransactionStatus } from "./transaction-status";
-import { useReCaptcha } from "@/hooks/use-recaptcha";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTokenMintLogic, TransactionStep } from './token-mint-logic';
 
-const enhancedToastStyle = {
-    style: {
-        background: "linear-gradient(to right, #9333ea, #db2777)",
-        color: "white",
-        fontFamily: "monospace",
-        fontSize: "1rem",
-        borderRadius: "0.5rem",
-        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-        border: "none",
-    },
-    duration: 5000,
-};
-
-const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    if (type === 'success') {
-        toast.success(message, enhancedToastStyle);
-    } else {
-        toast.error(message, enhancedToastStyle);
-    }
-};
-
-type Props = {
+// Definir las interfaces
+interface Props {
     contract: ThirdwebContract;
     displayName: string;
     description: string;
@@ -58,16 +35,26 @@ type Props = {
     pricePerToken: number;
     currencySymbol: string;
     isERC20: boolean;
-};
+}
 
+interface AddTokenParams {
+    address: string;
+    symbol: string;
+    decimals: number;
+    image?: string;
+}
+
+// Función de formato
 function formatBalance(balance: number): string {
-    const formatted = balance / 1e18;
+    // Convertir a número entero usando Math.floor
+    const formatted = Math.floor(balance / 1e18);
     return formatted.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
     });
 }
 
+// Componente StyledConnectButton
 function StyledConnectButton() {
     const wallets = [
         inAppWallet({
@@ -117,27 +104,20 @@ function StyledConnectButton() {
     );
 }
 
-interface AddTokenParams {
-    address: string;
-    symbol: string;
-    decimals: number;
-    image?: string;
-}
-
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
     const [tokenBalance, setTokenBalance] = useState<number>(0);
     const [transactionStep, setTransactionStep] = useState<TransactionStep>(-1);
     const [showTransactionStatus, setShowTransactionStatus] = useState(false);
     const [isChangingChain, setIsChangingChain] = useState(false);
-    const { verifyHuman, isReady: isRecaptchaReady } = useReCaptcha();
+    
     const account = useActiveAccount();
-    const { mutate: sendTransaction, isPending: isTransactionPending } = useSendTransaction();
     const activeWallet = useActiveWallet();
     const switchChain = useSwitchActiveWalletChain();
     const currentChain = useActiveWalletChain();
 
-    // Mover updateBalance aquí
+    const { mutate: sendTransaction } = useSendTransaction();
+
     const updateBalance = useCallback(async () => {
         if (account && props.contract) {
             try {
@@ -161,84 +141,50 @@ export function TokenMint(props: Props) {
         }
     }, [account, props.contract]);
 
-    // Crear una función wrapper para asegurar el tipo correcto
-    const handleTransactionStep = useCallback((step: number) => {
-        if (step >= -1 && step <= 3) {
-            setTransactionStep(step as TransactionStep);
-        }
-    }, []);
-
     const {
         handleMint,
         isPending: isMintPending
     } = useTokenMintLogic({
         contract: props.contract,
-        setTransactionStep: handleTransactionStep,
+        setTransactionStep,
         setShowTransactionStatus,
         quantity,
-        isRecaptchaReady,
-        verifyHuman: async () => {
-            const token = await verifyHuman();
-            return token;
-        },
         updateBalance
     });
 
+    // Efecto para actualizar el balance
     useEffect(() => {
         if (account) {
-            console.log("%cAccount Connected", "color: green; font-weight: bold;");
-            console.log("  Address:", account.address);
             updateBalance();
-        } else {
-            setTokenBalance(0);
+            const intervalId = setInterval(updateBalance, 5000);
+            return () => clearInterval(intervalId);
         }
-    }, [account, updateBalance, props.contract]);
+    }, [account, updateBalance]);
 
+    // Efecto para manejar el cambio de red
     useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-        
-        if (account) {
-            updateBalance();
-            intervalId = setInterval(updateBalance, 5000);
-        }
+        if (!activeWallet || !account || isChangingChain) return;
 
-        return () => {
-            if (intervalId) {
-                clearInterval(intervalId);
-            }
-        };
-    }, [account, updateBalance, props.contract]);
-
-    useEffect(() => {
-        let isHandlingSwitch = false;
         const handleChainSwitch = async () => {
-            if (!activeWallet || !account || isChangingChain || isHandlingSwitch) return;
-
             try {
                 if (!currentChain || currentChain.id !== baseChain.id) {
-                    isHandlingSwitch = true;
                     setIsChangingChain(true);
                     await switchChain(baseChain);
-                    showToast("¡Red cambiada exitosamente a Base Mainnet!");
+                    toast.success("¡Red cambiada exitosamente a Base Mainnet!");
                 }
             } catch (error) {
-                console.error("%cError switching chain", "color: red; font-weight: bold;", error);
-                showToast("Error al cambiar de red. Por favor, inténtalo manualmente.", "error");
+                console.error("Error switching chain:", error);
+                toast.error("Error al cambiar de red. Por favor, inténtalo manualmente.");
             } finally {
                 setIsChangingChain(false);
-                isHandlingSwitch = false;
             }
         };
 
-        const timeoutId = setTimeout(() => {
-            handleChainSwitch();
-        }, 500);
-
-        return () => clearTimeout(timeoutId);
+        handleChainSwitch();
     }, [activeWallet, account, currentChain, switchChain, isChangingChain]);
 
     if (isChangingChain) {
-        showToast("Cambio de red en proceso, por favor espera...", "error");
+        toast.error("Cambio de red en proceso, por favor espera...");
         return;
     }
 
@@ -273,7 +219,7 @@ export function TokenMint(props: Props) {
         try {
             // Verificar si MetaMask está instalado
             if (typeof window.ethereum === 'undefined') {
-                showToast("Por favor instala MetaMask", "error");
+                toast.error("Por favor instala MetaMask");
                 return;
             }
 
@@ -296,77 +242,21 @@ export function TokenMint(props: Props) {
                 });
 
                 if (wasAdded) {
-                    showToast("¡AGOD Token añadido exitosamente!");
+                    toast.success("¡AGOD Token añadido exitosamente!");
                 } else {
-                    showToast("No se pudo añadir el token", "error");
+                    toast.error("No se pudo añadir el token");
                 }
             } catch (error: any) {
                 console.error("Error al añadir token:", error);
                 if (error.code === 4001) {
-                    showToast("Operación cancelada por el usuario", "error");
+                    toast.error("Operación cancelada por el usuario");
                 } else {
-                    showToast("Error al añadir el token", "error");
+                    toast.error("Error al añadir el token");
                 }
             }
         } catch (error) {
             console.error("Error general:", error);
-            showToast("Error al añadir el token", "error");
-        }
-    };
-
-    const setupClaimConditions = async () => {
-        try {
-            // Preparar la transacción con todas las propiedades requeridas
-            const transaction = {
-                contract: props.contract,
-                method: "setClaimConditions",
-                params: [[{
-                    startTimestamp: BigInt(0),
-                    maxClaimableSupply: BigInt("100000000000000000000000000"),
-                    supplyClaimed: BigInt(0),
-                    quantityLimitPerWallet: BigInt("100000000000000000000000000"),
-                    merkleRoot: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                    pricePerToken: BigInt(7000),
-                    currency: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-                    metadata: "AGOD Token Minter"
-                }], false],
-                // Agregar las propiedades requeridas
-                chain: baseChain,
-                client: client
-            };
-
-            await sendTransaction(transaction, {
-                onSuccess: async () => {
-                    console.log("Claim conditions configuradas exitosamente");
-                    showToast("Claim conditions actualizadas");
-                    await verifyContractSetup();
-                },
-                onError: (error) => {
-                    console.error("Error configurando claim conditions:", error);
-                    showToast("Error configurando claim conditions", "error");
-                }
-            });
-        } catch (error) {
-            console.error("Error preparando claim conditions:", error);
-            showToast("Error preparando claim conditions", "error");
-        }
-    };
-
-    const verifyContractSetup = async () => {
-        try {
-            const { data: claimConditionData } = await useReadContract({
-                contract: props.contract,
-                method: "getClaimConditionById",
-                params: [BigInt(0)]
-            });
-
-            if (claimConditionData) {
-                console.log("Configuración actual:", claimConditionData);
-                showToast("Configuración verificada");
-            }
-        } catch (error) {
-            console.error("Error verificando configuración:", error);
-            showToast("Error al verificar configuración", "error");
+            toast.error("Error al añadir el token");
         }
     };
 
@@ -377,25 +267,7 @@ export function TokenMint(props: Props) {
         return null;
     }
 
-    // Agregar efecto para mensajes de estado
-    useEffect(() => {
-        if (showTransactionStatus) {
-            const messages: Record<number, string> = {
-                0: "Solicitando aprobación de USDC...",
-                1: "Esperando confirmación de la aprobación...",
-                2: "Minteando tokens AGOD...",
-                3: "¡Transacción completada exitosamente!"
-            };
-            
-            const message = transactionStep >= 0 && transactionStep <= 3 ? 
-                messages[transactionStep] : 
-                "Procesando...";
-
-            showToast(message, transactionStep === 3 ? "success" : undefined);
-        }
-    }, [transactionStep, showTransactionStatus]);
-
-    const isButtonDisabled = isMintPending || isTransactionPending || isChangingChain || showTransactionStatus || !isRecaptchaReady;
+    const isButtonDisabled = isMintPending || isChangingChain || showTransactionStatus;
 
     return (
         <div className="flex flex-col items-center justify-center">
@@ -413,23 +285,6 @@ export function TokenMint(props: Props) {
                             <p className="text-sm sm:text-base text-zinc-300 mb-4 sm:mb-8 text-center">
                                 {props.description}
                             </p>
-
-                            {isAdmin && (
-                                <div className="flex flex-col gap-2 mb-4">
-                                    <Button
-                                        variant="outline"
-                                        onClick={setupClaimConditions}
-                                    >
-                                        Configurar Claim Conditions
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        onClick={verifyContractSetup}
-                                    >
-                                        Verificar Configuración
-                                    </Button>
-                                </div>
-                            )}
 
                             {showTransactionStatus ? (
                                 <TransactionStatus 
@@ -499,7 +354,6 @@ export function TokenMint(props: Props) {
                                 >
                                     {isMintPending ? "Minting..." : 
                                     isChangingChain ? "Cambiando Red..." : 
-                                    !isRecaptchaReady ? "Inicializando Seguridad..." :
                                     `Mint ${quantity} Token${quantity > 1 ? "s" : ""}`}
                                 </Button>
                                 
@@ -534,6 +388,3 @@ export function TokenMint(props: Props) {
         </div>
     );
 }
-
-
-
