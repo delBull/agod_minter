@@ -217,22 +217,25 @@ export function TokenMint(props: Props) {
 
     const handleAddToWallet = async () => {
         try {
-            // Verificar si MetaMask está instalado
             if (typeof window.ethereum === 'undefined') {
-                toast.error("Por favor instala MetaMask");
+                toast.error("Por favor instala MetaMask", {
+                    style: {
+                        background: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
+                        color: 'white',
+                        border: 'none'
+                    }
+                });
                 return;
             }
 
-            // Parámetros del token
             const tokenParams: AddTokenParams = {
                 address: props.contract.address,
                 symbol: "AGOD",
                 decimals: 18,
-                image: props.contractImage // URL de la imagen del token
+                image: props.contractImage
             };
 
             try {
-                // Solicitar a MetaMask que agregue el token
                 const wasAdded = await window.ethereum.request({
                     method: 'wallet_watchAsset',
                     params: {
@@ -242,21 +245,51 @@ export function TokenMint(props: Props) {
                 });
 
                 if (wasAdded) {
-                    toast.success("¡AGOD Token añadido exitosamente!");
+                    toast.success("¡AGOD Token añadido exitosamente!", {
+                        style: {
+                            background: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
+                            color: 'white',
+                            border: 'none'
+                        }
+                    });
                 } else {
-                    toast.error("No se pudo añadir el token");
+                    toast.error("No se pudo añadir el token", {
+                        style: {
+                            background: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
+                            color: 'white',
+                            border: 'none'
+                        }
+                    });
                 }
             } catch (error: any) {
                 console.error("Error al añadir token:", error);
                 if (error.code === 4001) {
-                    toast.error("Operación cancelada por el usuario");
+                    toast.error("Operación cancelada por el usuario", {
+                        style: {
+                            background: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
+                            color: 'white',
+                            border: 'none'
+                        }
+                    });
                 } else {
-                    toast.error("Error al añadir el token");
+                    toast.error("Error al añadir el token", {
+                        style: {
+                            background: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
+                            color: 'white',
+                            border: 'none'
+                        }
+                    });
                 }
             }
         } catch (error) {
             console.error("Error general:", error);
-            toast.error("Error al añadir el token");
+            toast.error("Error al añadir el token", {
+                style: {
+                    background: 'linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))',
+                    color: 'white',
+                    border: 'none'
+                }
+            });
         }
     };
 
