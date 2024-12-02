@@ -1,16 +1,36 @@
 /**
- * Change this to the contract address
+ * Contract addresses
  */
-export const defaultTokenContractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
+export const CONTRACTS = {
+    TOKEN: "0xFC5fc05E5146f258A29654c03d351d4a61a856DC",  // AGOD Token
+    USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"   // USDC en Base
+};
 
 /**
- * Change this to the chainId that your nft collection is deployed on
- * Look for your chain: https://thirdweb.com/chainlist
+ * Chain configuration
  */
-export const defaultChainId = 8453;
+export const CHAIN_CONFIG = {
+    ID: 8453,  // Base Mainnet
+    CURRENCY: {
+        ADDRESS: CONTRACTS.USDC,
+        DECIMALS: 6,
+        SYMBOL: "USDC"
+    }
+};
 
 /**
- * Only applicable to ERC1155 Edition Drop contract
+ * Token configuration
+ */
+export const TOKEN_CONFIG = {
+    PRICE_PER_TOKEN: BigInt(7000),  // 0.007 USDC
+    GAS_SETTINGS: {
+        MAX_FEE_PER_GAS: BigInt(30000000000),      // 30 gwei
+        MAX_PRIORITY_FEE_PER_GAS: BigInt(1500000000) // 1.5 gwei
+    }
+};
+
+/**
+ * Default token ID (not used for ERC20)
  */
 export const defaultTokenId = 0n;
 
