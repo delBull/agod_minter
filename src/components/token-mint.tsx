@@ -176,6 +176,18 @@ export function TokenMint(props: Props) {
         }
     };
 
+    const handleMint = async () => {
+        setIsMinting(true);
+        setTransactionStep(0);
+        setShowTransactionStatus(true);
+        
+        try {
+            // ... resto del código
+        } catch (error) {
+            // ... manejo de errores
+        }
+    };
+
     return (
         <div className="flex flex-col items-center justify-center">
             {!account ? (

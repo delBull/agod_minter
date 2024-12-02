@@ -30,11 +30,24 @@ const toastStyle = {
     duration: 5000,
 };
 
+const errorMessages = {
+    userRejected: "Operación cancelada por el usuario",
+    insufficientFunds: "No tienes suficientes fondos para completar la operación",
+    default: "Algo salió mal. Por favor, inténtalo más tarde",
+    networkError: "Error de conexión. Verifica tu red e inténtalo de nuevo"
+};
+
 export const useTokenMintLogic = (props: Props) => {
     const account = useActiveAccount();
 
     const renderMintButton = (quantity: number, useCustomAddress: boolean, customAddress: string, isMinting: boolean) => {
         if (!account) return null;
+
+        const handleClick = () => {
+            // Mostrar el estado inmediatamente al hacer clic
+            props.setTransactionStep(0);
+            props.setShowTransactionStatus(true);
+        };
 
         return (
             <ClaimButton
@@ -71,29 +84,41 @@ export const useTokenMintLogic = (props: Props) => {
                     fontFamily: "monospace"
                 }}
                 disabled={isMinting}
+                onClick={handleClick} // Agregar el manejador de clic
                 onTransactionSent={() => {
-                    props.setTransactionStep(1);
-                    props.setShowTransactionStatus(true);
-                    toast.success("Transacción enviada...", toastStyle);
+                    toast.success("Iniciando transacción...", toastStyle);
                 }}
                 onTransactionConfirmed={async () => {
+                    props.setTransactionStep(1);
+                    toast.success("Aprobando USDC...", toastStyle);
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
                     props.setTransactionStep(2);
-                    toast.success(`¡${quantity} token${quantity > 1 ? 's' : ''} minteado${quantity > 1 ? 's' : ''} exitosamente! 💰`, toastStyle);
+                    toast.success("Preparando transacción...", toastStyle);
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    props.setTransactionStep(3);
+                    toast.success(`¡Felicidades! Has minteado ${props.quantity} token${props.quantity > 1 ? 's' : ''} AGOD 🎉`, toastStyle);
                     await props.updateBalance();
                     
-                    // Esperar un momento antes de mostrar el paso completado
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    props.setTransactionStep(3);
-                    
-                    // Esperar más tiempo antes de cerrar
                     setTimeout(() => {
                         props.setShowTransactionStatus(false);
                         props.setTransactionStep(-1);
-                    }, 5000); // Aumentado a 5 segundos
+                    }, 5000);
                 }}
                 onError={(err) => {
                     console.error("Error en minteo:", err);
-                    toast.error(err.message, toastStyle);
+                    let errorMessage = errorMessages.default;
+                    
+                    if (err.message.includes("user rejected")) {
+                        errorMessage = errorMessages.userRejected;
+                    } else if (err.message.includes("insufficient funds")) {
+                        errorMessage = errorMessages.insufficientFunds;
+                    } else if (err.message.includes("network")) {
+                        errorMessage = errorMessages.networkError;
+                    }
+                    
+                    toast.error(errorMessage, toastStyle);
                     props.setShowTransactionStatus(false);
                     props.setTransactionStep(-1);
                 }}
