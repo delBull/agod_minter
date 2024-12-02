@@ -42,7 +42,7 @@ export const defaultChainId = 8453;
 /**
  * Default token contract address
  */
-export const defaultTokenContractAddress = 0xFC5fc05E5146f258A29654c03d351d4a61a856DC;
+export const defaultTokenContractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
 
 /**
  * Test data:
