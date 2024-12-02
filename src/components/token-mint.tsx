@@ -4,13 +4,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Coins } from "lucide-react";
 import type { ThirdwebContract } from "thirdweb";
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client } from "@/lib/thirdwebClient";
 import { useTokenMintLogic, TransactionStep } from './token-mint-logic';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { balanceOf } from "thirdweb/extensions/erc20";
+import { useReadContract } from "thirdweb/react";
+import { toast } from "sonner";
 
 interface Props {
     contract: ThirdwebContract;
@@ -21,15 +23,30 @@ interface Props {
     currencySymbol: string;
 }
 
+function formatBalance(balance: number): string {
+    const formatted = Math.floor(balance / 1e18);
+    return formatted.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+}
+
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
-    const [useCustomAddress, setUseCustomAddress] = useState(false);
-    const [customAddress, setCustomAddress] = useState("");
     const [isMinting, setIsMinting] = useState(false);
     const [transactionStep, setTransactionStep] = useState<TransactionStep>(-1);
     const [showTransactionStatus, setShowTransactionStatus] = useState(false);
     
     const account = useActiveAccount();
+    
+    // Leer balance de AGOD
+    const balanceQuery = useReadContract(balanceOf, {
+        contract: props.contract,
+        address: account?.address || "0x0000000000000000000000000000000000000000",
+        queryOptions: {
+            enabled: !!account
+        }
+    });
 
     const { renderMintButton } = useTokenMintLogic({
         contract: props.contract,
@@ -37,8 +54,9 @@ export function TokenMint(props: Props) {
         setShowTransactionStatus,
         quantity,
         updateBalance: async () => {
-            // Implementar actualización de balance si es necesario
-            console.log("Actualizando balance...");
+            if (balanceQuery.refetch) {
+                await balanceQuery.refetch();
+            }
         }
     });
 
@@ -57,6 +75,35 @@ export function TokenMint(props: Props) {
         }
     };
 
+    const handleAddToWallet = async () => {
+        try {
+            if (typeof window.ethereum === 'undefined') {
+                toast.error("Por favor instala MetaMask");
+                return;
+            }
+
+            const wasAdded = await window.ethereum.request({
+                method: 'wallet_watchAsset',
+                params: {
+                    type: 'ERC20',
+                    options: {
+                        address: props.contract.address,
+                        symbol: "AGOD",
+                        decimals: 18,
+                        image: props.contractImage
+                    }
+                }
+            });
+
+            if (wasAdded) {
+                toast.success("¡AGOD Token añadido exitosamente!");
+            }
+        } catch (error) {
+            console.error("Error al añadir token:", error);
+            toast.error("Error al añadir el token");
+        }
+    };
+
     return (
         <div className="flex flex-col items-center justify-center">
             <Card className="w-full max-w-sm md:max-w-xl p-4 sm:p-8">
@@ -70,7 +117,7 @@ export function TokenMint(props: Props) {
 
                     <div className="flex flex-col items-center justify-center mb-4">
                         <div className="text-xs text-center font-medium font-mono text-zinc-400 mb-2">
-                            AGOD Token está en la red Base
+                            AGOD Token está en la red Base,<br />conéctate a ella para mintear.
                         </div>
                         <div className="flex items-center">
                             <Button
@@ -104,46 +151,60 @@ export function TokenMint(props: Props) {
                         <div className="text-base pr-1 font-semibold text-zinc-100 mt-2">
                             Total: {(props.pricePerToken * quantity).toFixed(3)} {props.currencySymbol}
                         </div>
-                    </div>
 
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Switch
-                            id="custom-address"
-                            checked={useCustomAddress}
-                            onCheckedChange={setUseCustomAddress}
-                        />
-                        <Label
-                            htmlFor="custom-address"
-                            className={`${useCustomAddress ? "" : "text-gray-400"} cursor-pointer`}
-                        >
-                            Mint to a custom address
-                        </Label>
-                    </div>
-
-                    {useCustomAddress && (
-                        <div className="mb-4">
-                            <Input
-                                id="address-input"
-                                type="text"
-                                placeholder="Enter recipient address"
-                                value={customAddress}
-                                onChange={(e) => setCustomAddress(e.target.value)}
-                                className="w-full"
-                            />
+                        <div className="text-xs pr-1 text-zinc-400 font-mono mt-1">
+                            {balanceQuery.data ? 
+                                `Tienes ${formatBalance(Number(balanceQuery.data))} AGOD Tokens` :
+                                "Aún no tienes AGOD Tokens"}
                         </div>
-                    )}
+                    </div>
                 </CardContent>
 
-                <CardFooter>
-                    {account ? (
-                        renderMintButton(quantity, useCustomAddress, customAddress, isMinting)
-                    ) : (
-                        <ConnectButton
-                            client={client}
-                            connectButton={{
-                                style: { width: "100%" }
-                            }}
-                        />
+                <CardFooter className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2 w-full">
+                        {account ? (
+                            <>
+                                {renderMintButton(quantity, false, "", isMinting)}
+                                <div className="relative shrink-0">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md" />
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={100}>
+                                            <TooltipTrigger asChild>
+                                                <button
+                                                    onClick={handleAddToWallet}
+                                                    className="relative px-3 sm:px-4 h-10 rounded-md bg-transparent flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-100 hover:text-zinc-200 transition-colors border border-transparent hover:border-zinc-700"
+                                                >
+                                                    <span>AGOD</span>
+                                                    <Coins className="h-4 w-4" />
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-zinc-800 border-1 border-zinc-400 text-zinc-100 text-xs">
+                                                <p>Agrega AGOD a tu Wallet</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            </>
+                        ) : (
+                            <ConnectButton
+                                client={client}
+                                connectButton={{
+                                    style: { width: "100%" }
+                                }}
+                            />
+                        )}
+                    </div>
+
+                    {account && (
+                        <div className="w-full flex justify-center">
+                            <ConnectButton
+                                client={client}
+                                connectButton={{
+                                    style: { width: "100%" },
+                                    label: `${account.address.slice(0, 6)}...${account.address.slice(-4)}`
+                                }}
+                            />
+                        </div>
                     )}
                 </CardFooter>
             </Card>
