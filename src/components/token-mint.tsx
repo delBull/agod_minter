@@ -79,6 +79,19 @@ function StyledConnectButton() {
     );
 }
 
+const toastStyle = {
+    style: {
+        background: "linear-gradient(to right, #9333ea, #db2777)",
+        color: "white",
+        fontFamily: "monospace",
+        fontSize: "1rem",
+        borderRadius: "0.5rem",
+        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+        border: "none",
+    },
+    duration: 5000,
+};
+
 export function TokenMint(props: Props) {
     const [quantity, setQuantity] = useState(1);
     const [isMinting, setIsMinting] = useState(false);
@@ -117,16 +130,21 @@ export function TokenMint(props: Props) {
     };
 
     const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Number.parseInt(e.target.value);
-        if (!Number.isNaN(value)) {
-            setQuantity(Math.max(1, value));
+        const value = e.target.value;
+        if (value === "") {
+            setQuantity(0);
+            return;
+        }
+        const numValue = Number.parseInt(value);
+        if (!Number.isNaN(numValue)) {
+            setQuantity(Math.max(0, numValue));
         }
     };
 
     const handleAddToWallet = async () => {
         try {
             if (typeof window.ethereum === 'undefined') {
-                toast.error("Por favor instala MetaMask");
+                toast.error("Por favor instala MetaMask", toastStyle);
                 return;
             }
 
@@ -144,11 +162,17 @@ export function TokenMint(props: Props) {
             });
 
             if (wasAdded) {
-                toast.success("¡AGOD Token añadido exitosamente!");
+                toast.success("¡AGOD Token añadido exitosamente!", toastStyle);
+            } else {
+                toast.error("No se pudo añadir el token", toastStyle);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error al añadir token:", error);
-            toast.error("Error al añadir el token");
+            if (error.code === 4001) {
+                toast.error("Operación cancelada por el usuario", toastStyle);
+            } else {
+                toast.error("Error al añadir el token", toastStyle);
+            }
         }
     };
 
@@ -242,13 +266,13 @@ export function TokenMint(props: Props) {
                                 </div>
                                 {account && (
                                     <div className="relative">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md opacity-50" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md" />
                                         <TooltipProvider>
                                             <Tooltip delayDuration={100}>
                                                 <TooltipTrigger asChild>
                                                     <button
                                                         onClick={handleAddToWallet}
-                                                        className="relative px-3 h-10 rounded-md bg-transparent flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-100 hover:text-zinc-200 transition-colors border border-transparent hover:border-zinc-700"
+                                                        className="relative px-3 sm:px-4 h-9 rounded-md bg-transparent flex items-center gap-1 text-[10px] font-mono font-bold text-zinc-100 hover:text-zinc-200 transition-colors border border-transparent hover:border-zinc-700"
                                                     >
                                                         <span>AGOD</span>
                                                         <Coins className="h-4 w-4" />

@@ -1,4 +1,5 @@
 import { CheckCircle2, Loader2, ArrowRight, ChevronRight, Coins } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TransactionStatusProps {
     currentStep: number;
@@ -9,29 +10,61 @@ export function TransactionStatus({ currentStep, isVisible }: TransactionStatusP
     if (!isVisible) return null;
 
     return (
-        <div className="flex flex-col items-center space-y-2">
-            <div className="flex items-center space-x-2">
-                <span className={`text-xs ${currentStep >= 1 ? 'text-green-500' : 'text-gray-400'}`}>
-                    Verificación
-                </span>
-                <ChevronRight className="h-3 w-3 text-gray-400" />
-                <span className={`text-xs ${currentStep >= 2 ? 'text-green-500' : 'text-gray-400'}`}>
-                    Preparación
-                </span>
-                <ChevronRight className="h-3 w-3 text-gray-400" />
-                <span className={`text-xs ${currentStep >= 3 ? 'text-green-500' : 'text-gray-400'}`}>
-                    {currentStep === 3 ? (
-                        <span className="flex items-center gap-1">
-                            Completado <Coins className="h-3 w-3" />
-                        </span>
-                    ) : 'Completado'}
-                </span>
-            </div>
-            {currentStep === 3 && (
-                <div className="text-xs text-green-500 animate-pulse">
-                    ¡Tokens agregados a tu wallet! 💰
+        <AnimatePresence>
+            <motion.div 
+                className="flex flex-col items-center space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+            >
+                <div className="flex items-center space-x-2">
+                    <span className={`text-xs flex items-center gap-2 ${currentStep >= 0 ? 'text-green-500' : 'text-gray-400'}`}>
+                        {currentStep >= 0 ? <CheckCircle2 className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
+                        Envíando
+                    </span>
+                    <ChevronRight className="h-3 w-3 text-gray-400" />
+                    <span className={`text-xs flex items-center gap-2 ${currentStep >= 1 ? 'text-green-500' : 'text-gray-400'}`}>
+                        {currentStep >= 1 ? <CheckCircle2 className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
+                        Aprobando
+                    </span>
+                    <ChevronRight className="h-3 w-3 text-gray-400" />
+                    <span className={`text-xs flex items-center gap-2 ${currentStep >= 2 ? 'text-green-500' : 'text-gray-400'}`}>
+                        {currentStep >= 2 ? <CheckCircle2 className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
+                        Preparando
+                    </span>
+                    <ChevronRight className="h-3 w-3 text-gray-400" />
+                    <span className={`text-xs flex items-center gap-2 ${currentStep >= 3 ? 'text-green-500' : 'text-gray-400'}`}>
+                        {currentStep === 3 ? (
+                            <>
+                                <CheckCircle2 className="h-4 w-4" />
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ 
+                                        type: "spring",
+                                        stiffness: 260,
+                                        damping: 20
+                                    }}
+                                >
+                                    <Coins className="h-5 w-5 text-yellow-500 animate-bounce" />
+                                </motion.div>
+                            </>
+                        ) : (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        )}
+                        Completado!
+                    </span>
                 </div>
-            )}
-        </div>
+                {currentStep === 3 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-xs text-green-500 font-medium"
+                    >
+                        ¡Tokens agregados a tu wallet! 💰
+                    </motion.div>
+                )}
+            </motion.div>
+        </AnimatePresence>
     );
 }

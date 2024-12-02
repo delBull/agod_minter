@@ -81,10 +81,15 @@ export const useTokenMintLogic = (props: Props) => {
                     toast.success(`¡${quantity} token${quantity > 1 ? 's' : ''} minteado${quantity > 1 ? 's' : ''} exitosamente! 💰`, toastStyle);
                     await props.updateBalance();
                     
+                    // Esperar un momento antes de mostrar el paso completado
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    props.setTransactionStep(3);
+                    
+                    // Esperar más tiempo antes de cerrar
                     setTimeout(() => {
                         props.setShowTransactionStatus(false);
                         props.setTransactionStep(-1);
-                    }, 3000);
+                    }, 5000); // Aumentado a 5 segundos
                 }}
                 onError={(err) => {
                     console.error("Error en minteo:", err);
