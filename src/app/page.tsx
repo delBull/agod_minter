@@ -56,6 +56,16 @@ function Header(): JSX.Element {
   );
 }
 
+interface Props {
+  contract: any;
+  displayName: string;
+  description: string;
+  contractImage: string;
+  pricePerToken: number;
+  currencySymbol: string;
+  isERC20: boolean;
+}
+
 export default function Home() {
   const [contract, setContract] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +138,6 @@ export default function Home() {
             contractImage="/icon.png"
             pricePerToken={0.007}
             currencySymbol="USDC"
-            isERC20={true}
           />
           <EcosystemResources />
         </div>
