@@ -66,7 +66,6 @@ export default async function Home() {
                 description={description}
                 currencySymbol={currencySymbol}
                 pricePerToken={pricePerToken}
-                isERC20={isERC20Query}
             />
         );
     } catch (error) {
@@ -80,7 +79,6 @@ export default async function Home() {
                 description="There was an error loading the contract data. Please try again later."
                 currencySymbol=""
                 pricePerToken={0}
-                isERC20={false}
             />
         );
     }
