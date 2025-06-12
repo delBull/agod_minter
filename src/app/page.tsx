@@ -1,6 +1,7 @@
 "use client";
 
 import { TokenMint } from "@/components/token-mint";
+import { InvestPool } from "@/components/invest-pool";
 import { client } from "@/lib/thirdwebClient";
 import { getContract } from "thirdweb/contract";
 import { baseChain } from "@/lib/chains";
@@ -10,8 +11,55 @@ import Image from "next/image";
 import { EcosystemResources } from "@/components/ecosystem-resources";
 import { Vortex } from "@/components/ui/vortex";
 import { AlertTriangle } from "lucide-react";
+import { ConnectButton } from "thirdweb/react";
+import { inAppWallet, createWallet } from "thirdweb/wallets";
 
 const contractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
+
+const wallets = [
+    inAppWallet({
+        auth: {
+          options: [
+            "google",
+            "discord",
+            "email",
+            "x",
+            "phone",
+            "telegram",
+          ],
+        },
+    }),
+    createWallet("io.metamask"),
+    createWallet("io.rabby"),
+    createWallet("walletConnect"),
+    createWallet("io.zerion.wallet"),
+];
+
+// Componente StyledConnectButton simplificado
+function StyledConnectButton() {
+    return (
+        <div className="relative mt-10 mb-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg opacity-50" />
+            <div className="w-96 h-0 flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-[1px] transition-colors">
+                <div className="rounded-lg z-10">
+                    <ConnectButton 
+                        client={client}
+                        wallets={wallets}
+                        connectButton={{
+                            label: "Inicia tu Conexión",
+                            className: "bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity"
+                        }}
+                        theme="dark"
+                        connectModal={{
+                            size: "compact",
+                            showThirdwebBranding: false,
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
 
 function Header(): JSX.Element {
   return (
@@ -32,20 +80,19 @@ function Header(): JSX.Element {
           height={150}
           width={150}
           alt=""
-          className="size-[150px] md:size-[150px] md:block"
           style={{
             filter: "drop-shadow(0px 0px 24px #a726a9a8)",
           }}
         />
 
-        <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-0 md:mb-6 text-zinc-100">
-          AGOD Token
+        <h1 className="text-2xl md:text-6xl font-semibold tracking-tighter mb-0 md:mb-6 text-zinc-100">
+          AGOD Ecosystem
           <span className="text-zinc-300 inline-block mx-1"> · </span>
-          <span className="inline-block -skew-x-6 text-red-500"> Minter </span>
+          <span className="inline-block -skew-x-6 text-red-500">Minter</span>
         </h1>
 
-        <p className="text-zinc-300 text-base ">
-          Abre la puerta tu{" "}
+        <p className="text-zinc-300 text-base">
+          Abre la puerta a tu{" "}
           <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
             UNIVERSO
           </code>{" "}
@@ -56,91 +103,63 @@ function Header(): JSX.Element {
   );
 }
 
-interface Props {
-  contract: any;
-  displayName: string;
-  description: string;
-  contractImage: string;
-  pricePerToken: number;
-  currencySymbol: string;
-  isERC20: boolean;
-}
-
 export default function Home() {
   const [contract, setContract] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Show safety alert on page load
     setTimeout(() => {
       toast.info(
         <div className="flex text-white font-mono items-center gap-2 rounded-lg p-[1px]">
           <AlertTriangle className="h-5 w-5 text-white shrink-0" />
           <span>Alerta: ¡Siempre verifica que estés en minter.agodecosystem.com!</span>
         </div>,
-        {
-          duration: 4000,
-          position: "top-center",
-          className: "",
-        }
+        { duration: 4000, position: "top-center" }
       );
     }, 500);
 
-    const initContract = async () => {
+    (async () => {
       try {
-        console.log("Initializing contract on chain:", baseChain.name);
         const newContract = getContract({
           client,
           address: contractAddress,
-          chain: baseChain
+          chain: baseChain,
         });
-        console.log("Contract initialized successfully");
         setContract(newContract);
       } catch (err) {
-        console.error("Error initializing contract:", err);
-        const errorMessage = err instanceof Error ? err.message : "Error initializing contract";
-        setError(errorMessage);
-        toast.error(errorMessage);
+        const msg = err instanceof Error ? err.message : "Error initializing contract";
+        setError(msg);
+        toast.error(msg);
       }
-    };
-
-    initContract();
+    })();
   }, []);
 
   if (error) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <div className="text-red-500">{error}</div>
-      </main>
-    );
+    return <main className="min-h-screen flex items-center justify-center bg-zinc-950"><div className="text-red-500">{error}</div></main>;
   }
-
   if (!contract) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-zinc-400">Conectando a AGOD Minter...</p>
-        </div>
-      </main>
-    );
+    return <main className="min-h-screen flex items-center justify-center bg-zinc-950"><div className="text-zinc-400">Conectando a AGOD Minter...</div></main>;
   }
 
   return (
-    <main className="p-4 pb-24 md:pb-10 max-h-screen flex items-center justify-center bg-zinc-950">
-      <div className="max-w-screen-lg w-full mx-auto bg-zinc-950">
-        <div className="py-0 md:py-0 w-full space-y-12">
-          <Header />
-          <TokenMint
-            contract={contract}
-            displayName=""
-            description=""
-            contractImage="/icon.png"
-            pricePerToken={0.007}
-            currencySymbol="USDC"
-          />
-          <EcosystemResources />
+    <main className="p-4 pb-24 md:pb-10 flex items-center justify-center bg-zinc-950 min-h-screen">
+      <div className="max-w-screen-lg w-full space-y-12">
+        <Header />
+        <div className="flex columns-2 md:columns-3 gap-4 mb-8">
+        <TokenMint
+          contract={contract}
+          displayName="AGOD Token"
+          description="El utility y governance token del AGOD Ecosystem, respaldado por activos reales, que te permite participar en decisiones, obtener rendimientos y desbloquear servicios exclusivos."
+          contractImage="/icon.png"
+          pricePerToken={0.007}
+          currencySymbol="USDC"
+        />
+        <InvestPool />
         </div>
+         <div className="mt-4">
+                                <StyledConnectButton />
+                            </div>
+        <EcosystemResources />
       </div>
     </main>
   );

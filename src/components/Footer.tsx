@@ -12,7 +12,7 @@ export function Footer() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
             <div className="w-full md:w-auto flex justify-center md:justify-start">
               <p className="text-[10px] md:text-xs text-muted-foreground text-slate-200 whitespace-nowrap">
-                AGOD Ecosystem es una marca ® de MXHUB Ecosistema Blockchain S.A. de C.V
+                ®AGOD Ecosystem 2025. Todos los derechos reservados.
               </p>
             </div>
 
