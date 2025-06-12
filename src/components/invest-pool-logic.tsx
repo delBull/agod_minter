@@ -10,7 +10,6 @@ export const useInvestPoolLogic = () => {
   const account = useActiveAccount();
 
   const InvestButton = (amount: number) => {
-    // Como InvestPool no se renderiza sin conexión, esta comprobación no es estricta
     if (!account) return null;
 
     return (
@@ -23,18 +22,17 @@ export const useInvestPoolLogic = () => {
           to: CONTRACTS.POOL_SEPOLIA,
           quantityInWei: BigInt(amount) * 10n ** 6n,
         }}
-        onSuccess={() => toast.success("Inversión confirmada")}
         onError={(e) => {
           console.error(e);
           toast.error("Error en inversión");
         }}
         style={{
           width: "100%",
-          background: "linear-gradient(to right, #22c55e, #86d41a)",
+          background: "linear-gradient(to right, #22c55e, #16a34a)",
           color: "white",
           padding: "10px",
           borderRadius: "0.5rem",
-          fontFamily: "monospace"
+          fontFamily: "monospace",
         }}
       >
         Invertir {amount} USDC
