@@ -21,7 +21,7 @@ export const useInvestPoolLogic = () => {
         claimParams={{
           type: "ERC20",
           to: CONTRACTS.POOL_SEPOLIA,
-          amount: (amount * 10 ** 6).toString(),
+          quantityInWei: BigInt(amount) * 10n ** 6n,
         }}
         onSuccess={() => toast.success("Inversión confirmada")}
         onError={(e) => {
@@ -30,10 +30,11 @@ export const useInvestPoolLogic = () => {
         }}
         style={{
           width: "100%",
-          background: "linear-gradient(to right, #22c55e, #16a34a)",
+          background: "linear-gradient(to right, #22c55e, #86d41a)",
           color: "white",
           padding: "10px",
           borderRadius: "0.5rem",
+          fontFamily: "monospace"
         }}
       >
         Invertir {amount} USDC

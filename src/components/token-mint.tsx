@@ -6,8 +6,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus, Coins } from "lucide-react";
 import type { ThirdwebContract } from "thirdweb";
-import { ConnectButton, useActiveAccount } from "thirdweb/react";
-import { client } from "@/lib/thirdwebClient";
+import { useActiveAccount } from "thirdweb/react";
+//import { client } from "@/lib/thirdwebClient";
 import { useTokenMintLogic, TransactionStep } from "./token-mint-logic";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { balanceOf } from "thirdweb/extensions/erc20";
@@ -16,6 +16,7 @@ import { inAppWallet, createWallet } from "thirdweb/wallets";
 import { toast } from "sonner";
 import { TransactionStatus } from "./transaction-status";
 import CountUp from "react-countup";
+import Image from "next/image";
 
 interface Props {
   contract: ThirdwebContract;
@@ -135,9 +136,9 @@ export function TokenMint(props: Props) {
 
   // Ya hay cuenta: mostramos la interfaz
   return (
-    <div className="flex flex-col items-center justify-center">
-      <Card className="w-full max-w-sm p-4 sm:p-8 animate-fadeIn">
-        <CardContent>
+    <div className="flex flex-col items-center justify-center px-4">
+      <Card className="w-full max-w-md p-4 sm:p-8 animate-fadeIn">
+        <CardContent className="mb-3">
           <h2 className="text-xl font-bold text-zinc-100 text-center">{props.displayName}</h2>
           <p className="text-sm text-zinc-300 mb-4 text-center">{props.description}</p>
 
@@ -145,11 +146,20 @@ export function TokenMint(props: Props) {
             <TransactionStatus currentStep={transactionStep} isVisible={showTransactionStatus} />
           ) : (
             <div className="flex flex-col items-center mb-4">
-              <div className="text-xs text-zinc-400 mb-4 text-center font-mono">
-                El token AGOD te permite participar en el ecosistema.
+                {/*
+              <div className="text-xs text-zinc-400 mb-1 text-center font-mono">
+                AGOD Token está en la red de Base.
               </div>
+              */}
+                      <Image
+                        src="/icon.png"
+                        alt="AGOD Token"
+                        width={100}
+                        height={200}
+                        className="mx-auto mb-4 rounded-lg shadow-lg"
+                      />
 
-              <div className="flex items-center mb-4">
+              <div className="flex items-center justify-center mb-4">
                 <Button variant="outline" size="icon" onClick={decreaseQuantity} disabled={quantity <= 1}>
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -157,14 +167,14 @@ export function TokenMint(props: Props) {
                   type="text"
                   value={quantity === 0 ? "" : quantity}
                   onChange={handleQuantityChange}
-                  className="w-28 text-center text-white bg-transparent"
+                  className="mx-2 w-20 text-center text-white bg-transparent"
                 />
                 <Button variant="outline" size="icon" onClick={increaseQuantity}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
 
-              <div className="text-base font-semibold text-zinc-100 mb-2">
+              <div className="text-base font-semibold text-zinc-100">
                 Total:{" "}
                 <CountUp
                   end={props.pricePerToken * quantity}
@@ -184,8 +194,8 @@ export function TokenMint(props: Props) {
           )}
         </CardContent>
 
-        <CardFooter className="flex flex-col items-center">
-          <div className="flex items-center gap-2 w-full sm:w-96">
+        <CardFooter className="absolute bottom-2 flex-col items-center left-0 justify-center w-full">
+          <div className="flex items-center gap-2 px-8 w-full sm:w-96">
             <div className="flex-1">
               {renderMintButton(quantity, false, "", isMinting)}
             </div>

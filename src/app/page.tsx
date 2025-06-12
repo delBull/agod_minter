@@ -7,7 +7,6 @@ import { getContract } from "thirdweb/contract";
 import { baseChain } from "@/lib/chains";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import Image from "next/image";
 import { EcosystemResources } from "@/components/ecosystem-resources";
 import { Vortex } from "@/components/ui/vortex";
 import { AlertTriangle } from "lucide-react";
@@ -75,6 +74,7 @@ function Header(): JSX.Element {
         />
       </div>
       <div className="relative z-10 flex flex-col items-center justify-center py-4 mt-12 md:mt-10">
+        {/*
         <Image
           src="/icon.png"
           height={150}
@@ -84,6 +84,7 @@ function Header(): JSX.Element {
             filter: "drop-shadow(0px 0px 24px #a726a9a8)",
           }}
         />
+      */}
 
         <h1 className="text-2xl md:text-6xl font-semibold tracking-tighter mb-0 md:mb-6 text-zinc-100">
           AGOD Ecosystem
@@ -143,22 +144,24 @@ export default function Home() {
 
   return (
     <main className="p-4 pb-24 md:pb-10 flex items-center justify-center bg-zinc-950 min-h-screen">
-      <div className="max-w-screen-lg w-full space-y-12">
+      <div className="max-w-screen-lg w-full space-y-4">
         <Header />
-        <div className="flex columns-2 md:columns-3 gap-4 mb-8">
+        <div className="flex justify-center w-full top-0">
+            <StyledConnectButton />
+         </div>
+         <div className="container mx-auto px-4">
+        <div className="grid sm:grid-cols-2 gap-2 mb-8 grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] md:grid-cols-[repeat(auto-fit,_minmax(350px,_1fr))] lg:grid-cols-[repeat(auto-fit,_minmax(400px,_1fr))]">
         <TokenMint
           contract={contract}
           displayName="AGOD Token"
-          description="El utility y governance token del AGOD Ecosystem, respaldado por activos reales, que te permite participar en decisiones, obtener rendimientos y desbloquear servicios exclusivos."
+          description="El utility y governance token de AGOD Ecosystem, respaldado por activos reales, te permite participar en decisiones, obtener rendimientos y desbloquear servicios exclusivos."
           contractImage="/icon.png"
           pricePerToken={0.007}
           currencySymbol="USDC"
         />
         <InvestPool />
         </div>
-         <div className="mt-4">
-                                <StyledConnectButton />
-                            </div>
+        </div>
         <EcosystemResources />
       </div>
     </main>
