@@ -1,44 +1,88 @@
 "use client";
 
 import { toast } from "sonner";
-import { useActiveAccount, ClaimButton } from "thirdweb/react";
-import { BaseSepoliaTestnet } from "@/lib/chains";
-import { client } from "@/lib/thirdwebClient";
+import {
+  useContract,
+  useContractRead,
+  useAddress
+} from "@thirdweb-dev/react";
+import { ethers } from "ethers";
+import { useState } from "react";
+import vaultAbi from "./abis/TimeLockedEthInvestmentVault.json";
 import { CONTRACTS } from "@/lib/constants";
 
 export const useInvestPoolLogic = () => {
-  const account = useActiveAccount();
+  const address = useAddress();
+  const { contract: vault } = useContract(
+    CONTRACTS.POOL_SEPOLIA,
+    vaultAbi
+  );
 
-  const InvestButton = (amount: number) => {
-    if (!account) return null;
+  const { data: rawBalance } = useContractRead(
+    vault!,
+    "balanceOf",
+    [address || ""]
+  );
+  const depositedEth = rawBalance
+    ? Number(ethers.utils.formatEther(rawBalance as ethers.BigNumber))
+    : 0;
+
+  const [loading, setLoading] = useState(false);
+
+  const InvestButton = (amountEth: number) => {
+    if (!address) return null;
+
+    const handleInvest = async () => {
+      try {
+        setLoading(true);
+        if (amountEth <= 0) {
+          toast.error("Monto debe ser mayor a 0");
+          return;
+        }
+        const amountWei = ethers.utils.parseEther(
+          amountEth.toString()
+        );
+        const tx = await vault!.call(
+          "deposit",
+          [address],
+          { value: amountWei }
+        );
+        toast.success("Transacción enviada", { duration: 4000 });
+        await tx.wait();
+        toast.success("¡Inversión confirmada!", {
+          duration: 4000,
+        });
+      } catch (e: any) {
+        console.error(e);
+        toast.error(
+          e?.message.includes("user rejected")
+            ? "Operación cancelada"
+            : "Error realizando la inversión"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
     return (
-      <ClaimButton
-        contractAddress={CONTRACTS.USDC_SEPOLIA}
-        chain={BaseSepoliaTestnet}
-        client={client}
-        claimParams={{
-          type: "ERC20",
-          to: CONTRACTS.POOL_SEPOLIA,
-          quantityInWei: BigInt(amount) * 10n ** 6n,
-        }}
-        onError={(e) => {
-          console.error(e);
-          toast.error("Error en inversión");
-        }}
-        style={{
-          width: "100%",
-          background: "linear-gradient(to right, #22c55e, #16a34a)",
-          color: "white",
-          padding: "10px",
-          borderRadius: "0.5rem",
-          fontFamily: "monospace",
-        }}
+      <button
+        className={`w-full font-mono text-white p-3 rounded mt-2 ${
+          loading
+            ? "bg-gray-500 cursor-not-allowed"
+            : "bg-gradient-to-r from-green-600 to-green-300 hover:opacity-90"
+        }`}
+        onClick={handleInvest}
+        disabled={loading}
       >
-        Invertir {amount} USDC
-      </ClaimButton>
+        {loading
+          ? "Procesando..."
+          : `Invertir ${amountEth.toFixed(4)} ETH`}
+      </button>
     );
   };
 
-  return { InvestButton };
+  return {
+    InvestButton,
+    depositedEth,
+  };
 };

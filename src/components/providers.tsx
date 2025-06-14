@@ -1,6 +1,6 @@
 "use client";
 
-import { ThirdwebProvider } from "thirdweb/react";
+import { ThirdwebProvider as ThirdwebProviderV4 } from "@thirdweb-dev/react";
 import { baseChain } from "@/lib/chains";
 import { useEffect } from "react";
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
@@ -57,7 +57,6 @@ function ConnectionLogger({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
     if (!reCaptchaKey) {
         console.error('NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not configured');
     }
@@ -79,11 +78,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
             useRecaptchaNet={true}
             language="es"
         >
-            <ThirdwebProvider>
+            <ThirdwebProviderV4>
                 <ConnectionLogger>
                     {children}
                 </ConnectionLogger>
-            </ThirdwebProvider>
+            </ThirdwebProviderV4>
         </GoogleReCaptchaProvider>
     );
 }

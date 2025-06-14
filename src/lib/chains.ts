@@ -1,5 +1,6 @@
 import { Chain } from "thirdweb/chains";
 
+
 export const baseChain: Chain = {
     id: 8453,
     name: "Base Mainnet",

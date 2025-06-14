@@ -33,7 +33,7 @@ importers:
         specifier: ^3.22.0
         version: 3.22.0(react@18.3.1)
       '@tanstack/react-query':
-        specifier: ^5.60.5
+        specifier: ^5.60.6
         version: 5.60.6(react@18.3.1)
       '@thirdweb-dev/chains':
         specifier: ^0.1.120
@@ -47,6 +47,9 @@ importers:
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
+      ethers:
+        specifier: ^5.7.2
+        version: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       lucide-react:
         specifier: ^0.438.0
         version: 0.438.0(react@18.3.1)

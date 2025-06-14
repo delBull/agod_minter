@@ -14,6 +14,7 @@ import { ConnectButton } from "thirdweb/react";
 import { inAppWallet, createWallet } from "thirdweb/wallets";
 
 const contractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
+//const PoolSepoliaContractAddress = "0x165D93671C2CC6A5C763A806c7e6f4f437762C29";
 
 const wallets = [
     inAppWallet({
@@ -34,7 +35,6 @@ const wallets = [
     createWallet("io.zerion.wallet"),
 ];
 
-// Componente StyledConnectButton simplificado
 function StyledConnectButton() {
     return (
         <div className="relative mt-10 mb-10">
