@@ -39,7 +39,7 @@ export function TransactionStatus({ currentStep, isVisible }: TransactionStatusP
     return (
         <AnimatePresence>
             <motion.div 
-                className="flex flex-col items-center space-y-2 sm:space-y-4"
+                className="flex flex-col items-center space-y-2 sm:space-y-4 mb-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}

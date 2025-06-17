@@ -50,10 +50,12 @@ const errorMessages = {
 export const useInvestPoolLogic = () => {
   const account = useActiveAccount();
   const [loading, setLoading] = useState(false);
-  const [depositedEth, setDepositedEth] = useState(0);
+  const [depositedEth, setDepositedEth] = useState<number | undefined>(undefined);
+  const [transactionStep, setTransactionStep] = useState<InvestTransactionStep>(-1);
+  const [showTransactionStatus, setShowTransactionStatus] = useState(false);
   const { mutate: sendTransaction } = useSendTransaction();
 
-  const { data: balance } = useReadContract({
+  const { data: balance, refetch: refetchBalance } = useReadContract({
     contract: {
       client,
       chain: baseChain,
@@ -64,15 +66,11 @@ export const useInvestPoolLogic = () => {
     params: [account?.address || "0x0"],
   });
 
-  // Update depositedEth when balance changes
   useEffect(() => {
     if (balance) {
       setDepositedEth(Number(utils.formatUnits(balance, 18)));
     }
   }, [balance]);
-
-  const [transactionStep, setTransactionStep] = useState<InvestTransactionStep>(-1);
-  const [showTransactionStatus, setShowTransactionStatus] = useState(false);
 
   const InvestButton = (amountEth: number) => {
     if (!account?.address) return null;
@@ -107,21 +105,28 @@ export const useInvestPoolLogic = () => {
         await sendTransaction(transaction as any);
         toast.success("Transacción enviada", toastStyle);
 
+        // Esperar un momento para que la transacción se procese
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Marcar como completado y actualizar balance
         setTransactionStep(2);
         toast.success("¡Inversión confirmada!", toastStyle);
+        await refetchBalance();
 
+        // Reset después de mostrar completado
         setTimeout(() => {
           setShowTransactionStatus(false);
           setTransactionStep(-1);
-        }, 5000);
+        }, 3000);
+
       } catch (e: any) {
         console.error("Error en inversión:", e);
-        let errorMessage = errorMessages.default;
+        setTransactionStep(-1);
+        setShowTransactionStatus(false);
         
+        let errorMessage = "Error realizando la inversión";
         if (e?.message.includes("user rejected")) {
-          errorMessage = errorMessages.userRejected;
-        } else if (e?.message.includes("network")) {
-          errorMessage = errorMessages.networkError;
+          errorMessage = "Operación cancelada";
         }
         
         toast.error(errorMessage, toastStyle);
@@ -132,7 +137,7 @@ export const useInvestPoolLogic = () => {
 
     return (
       <button
-        className={`flex items-center gap-2 px-8 w-full sm:w-96 font-mono text-white p-3 rounded-lg mt-2 ${
+        className={`flex items-center justify-center gap-2 px-8 w-full sm:w-96 font-mono text-white h-[36px] rounded-md ${
           loading
             ? "bg-gray-500 cursor-not-allowed"
             : "bg-gradient-to-r from-green-600 to-green-300 hover:opacity-90"

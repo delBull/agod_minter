@@ -101,7 +101,7 @@ export function InvestPool() {
       </CardContent>
 
       <CardFooter className="absolute bottom-4 left-0 w-full">
-        <div>
+        <div className="flex items-center justify-center px-4 sm:px-8 w-full">
           {InvestButton(amount)}
         </div>
       </CardFooter>
