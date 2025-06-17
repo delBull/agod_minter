@@ -12,17 +12,30 @@ import type { InvestTransactionStep } from "./invest-transaction-status";
 
 const vaultAbi = [
   {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    inputs: [{ internalType: "address", name: "receiver", type: "address" }],
+    name: "deposit",
+    outputs: [{ internalType: "uint256", name: "shares", type: "uint256" }],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "user", type: "address" }],
+    name: "getUserDepositInfo",
+    outputs: [
+      { internalType: "uint256[]", name: "amounts", type: "uint256[]" },
+      { internalType: "uint256[]", name: "timestamps", type: "uint256[]" },
+      { internalType: "bool[]", name: "withdrawn", type: "bool[]" },
+      { internalType: "bool[]", name: "unlockedByAdmin", type: "bool[]" },
+      { internalType: "bool[]", name: "fullyRedeemable", type: "bool[]" }
+    ],
     stateMutability: "view",
     type: "function"
   },
   {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "deposit",
-    outputs: [],
-    stateMutability: "payable",
+    inputs: [],
+    name: "totalDeposited",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
     type: "function"
   }
 ] as const;
@@ -55,78 +68,130 @@ export const useInvestPoolLogic = () => {
   const [showTransactionStatus, setShowTransactionStatus] = useState(false);
   const { mutate: sendTransaction } = useSendTransaction();
 
-  const { data: balance, refetch: refetchBalance } = useReadContract({
+  const { data: userDeposits, refetch: refetchDeposits } = useReadContract({
     contract: {
       client,
       chain: baseChain,
-      address: CONTRACTS.POOL_SEPOLIA,
+      address: CONTRACTS.POOL,
       abi: vaultAbi,
     },
-    method: "balanceOf",
+    method: "getUserDepositInfo",
     params: [account?.address || "0x0"],
   });
 
+  const { data: totalDeposited } = useReadContract({
+    contract: {
+      client,
+      chain: baseChain,
+      address: CONTRACTS.POOL,
+      abi: vaultAbi,
+    },
+    method: "totalDeposited",
+    params: [],
+  });
+
   useEffect(() => {
-    if (balance) {
-      setDepositedEth(Number(utils.formatUnits(balance, 18)));
+    if (userDeposits) {
+      console.log("User deposits data:", {
+        raw: userDeposits,
+        amounts: userDeposits[0],
+        timestamps: userDeposits[1],
+        withdrawn: userDeposits[2],
+        contractTotal: totalDeposited
+      });
+
+      const amounts = userDeposits[0] as bigint[];
+      const withdrawn = userDeposits[2] as boolean[];
+
+      const calculatedTotal = amounts.reduce((total: number, amount: bigint, index: number) => {
+        if (!withdrawn[index]) {
+          return total + Number(utils.formatUnits(amount, 18));
+        }
+        return total;
+      }, 0);
+
+      setDepositedEth(calculatedTotal);
+
+      console.log("Deposit totals:", {
+        userTotal: calculatedTotal,
+        contractTotal: totalDeposited ? 
+          Number(utils.formatUnits(totalDeposited, 18)) : 
+          0
+      });
     }
-  }, [balance]);
+  }, [userDeposits, totalDeposited]);
 
   const InvestButton = (amountEth: number) => {
     if (!account?.address) return null;
 
     const handleInvest = async () => {
-      try {
-        setLoading(true);
-        setTransactionStep(0);
-        setShowTransactionStatus(true);
+  try {
+    setLoading(true);
+    setTransactionStep(0);
+    setShowTransactionStatus(true);
 
-        if (amountEth <= 0) {
-          toast.error("Monto debe ser mayor a 0", toastStyle);
-          return;
-        }
+    if (amountEth <= 0) {
+      toast.error("Monto debe ser mayor a 0", toastStyle);
+      return;
+    }
 
-        const amountWei = utils.parseUnits(amountEth.toString(), 18);
+    const amountWei = utils.parseUnits(amountEth.toString(), 18);
 
-        toast.success("Iniciando transacción...", toastStyle);
-        const transaction = prepareContractCall({
-          contract: {
-            client,
-            chain: baseChain,
-            address: CONTRACTS.POOL_SEPOLIA,
-            abi: vaultAbi,
-          },
-          method: "deposit",
-          params: [account.address],
-          value: BigInt(amountWei.toString())
+        console.log("Preparing transaction with:", {
+          address: CONTRACTS.POOL,
+          amount: amountWei.toString(),
+          account: account.address
         });
 
-        setTransactionStep(1);
-        await sendTransaction(transaction as any);
-        toast.success("Transacción enviada", toastStyle);
+    toast.success("Iniciando transacción...", toastStyle);
+    const transaction = prepareContractCall({
+      contract: {
+        client,
+        chain: baseChain,
+        address: CONTRACTS.POOL,
+        abi: vaultAbi,
+      },
+      method: "deposit",
+      params: [account.address],
+      value: BigInt(amountWei.toString())
+    });
 
-        // Esperar un momento para que la transacción se procese
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Marcar como completado y actualizar balance
-        setTransactionStep(2);
-        toast.success("¡Inversión confirmada!", toastStyle);
-        await refetchBalance();
+    setTransactionStep(1);
+    const tx = await sendTransaction(transaction as any);
+    console.log("Transaction sent:", tx);
+    toast.success("Transacción enviada", toastStyle);
 
-        // Reset después de mostrar completado
-        setTimeout(() => {
-          setShowTransactionStatus(false);
-          setTransactionStep(-1);
-        }, 3000);
+    await new Promise(resolve => setTimeout(resolve, 20000));
+
+    console.log("Refetching deposits...");
+        await refetchDeposits();
+
+    await refetchDeposits();
+    
+    setTransactionStep(2);
+    toast.success("¡Inversión confirmada!", toastStyle);
+
+    setTimeout(() => {
+      setShowTransactionStatus(false);
+      setTransactionStep(-1);
+    }, 3000);
 
       } catch (e: any) {
-        console.error("Error en inversión:", e);
+        console.error("Error details:", {
+          error: e,
+          message: e.message,
+          code: e.code,
+          data: e.data,
+          stack: e.stack
+        });
         setTransactionStep(-1);
         setShowTransactionStatus(false);
         
-        let errorMessage = "Error realizando la inversión";
+        let errorMessage = errorMessages.default;
         if (e?.message.includes("user rejected")) {
-          errorMessage = "Operación cancelada";
+          errorMessage = errorMessages.userRejected;
+        } else if (e?.message.includes("network")) {
+          errorMessage = errorMessages.networkError;
         }
         
         toast.error(errorMessage, toastStyle);
