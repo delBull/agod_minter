@@ -1,10 +1,7 @@
 "use client";
 
 import { TokenMint } from "@/components/token-mint";
-import {
-    defaultChainId,
-    defaultTokenContractAddress,
-} from "@/lib/constants";
+import { defaultChainId, defaultTokenContractAddress } from "@/lib/constants";
 import { client } from "@/lib/thirdwebClient";
 import { defineChain, getContract, toTokens } from "thirdweb";
 import { getContractMetadata } from "thirdweb/extensions/common";
@@ -13,73 +10,108 @@ import {
     isERC20,
 } from "thirdweb/extensions/erc20";
 import { getCurrencyMetadata } from "thirdweb/extensions/erc20";
+import { useEffect, useState, Suspense } from 'react';
+import type { ContractOptions } from "thirdweb/contract";
 
-// Página SSR actualizada para Tokens
-export default async function Home() {
-    const chain = defineChain(defaultChainId);
-    const contract = getContract({
-        address: defaultTokenContractAddress,
-        chain,
-        client,
-    });
+interface TokenData {
+  contract: ContractOptions<[]> | undefined;
+  displayName: string;
+  description: string;
+  contractImage: string;
+  currencySymbol: string;
+  pricePerToken: number;
+}
 
-    try {
-        // Verifica si el contrato es ERC20 usando la dirección del contrato
+function TokenMintContainer() {
+  const [tokenData, setTokenData] = useState<TokenData>({
+    contract: undefined,
+    displayName: "",
+    description: "",
+    contractImage: "",
+    currencySymbol: "",
+    pricePerToken: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function initializeContract() {
+      try {
+        const chain = defineChain(defaultChainId);
+        const contract = getContract({
+          address: defaultTokenContractAddress,
+          chain,
+          client,
+        }) as ContractOptions<[]>;
+
         const isERC20Result = await isERC20([defaultTokenContractAddress]);
-        const isERC20Query = Array.isArray(isERC20Result) && isERC20Result.length > 0 
-            ? isERC20Result[0] 
-            : false;
-
         const [contractMetadataQuery, claimCondition20] = await Promise.all([
-            getContractMetadata({ contract }),
-            getActiveClaimCondition20({ contract }),
+          getContractMetadata({ contract }),
+          getActiveClaimCondition20({ contract }),
         ]);
-
-        const displayName = contractMetadataQuery.data?.name || "";
-        const description = contractMetadataQuery.data?.description || "";
 
         const priceInWei = claimCondition20?.pricePerToken;
         const currency = claimCondition20?.currency;
 
         let currencyMetadata;
         if (currency) {
-            const currencyContract = getContract({
-                address: currency,
-                chain,
-                client,
-            });
-            currencyMetadata = await getCurrencyMetadata({ contract: currencyContract });
+          const currencyContract = getContract({
+            address: currency,
+            chain,
+            client,
+          });
+          currencyMetadata = await getCurrencyMetadata({ contract: currencyContract });
         }
 
-        const currencySymbol = currencyMetadata?.symbol || "";
-
-        // Ensure pricePerToken is always a number, defaulting to 0 if null
-        const pricePerToken = currencyMetadata && priceInWei
+        setTokenData({
+          contract,
+          displayName: contractMetadataQuery.data?.name || "",
+          description: contractMetadataQuery.data?.description || "",
+          contractImage: contractMetadataQuery.data?.image || "",
+          currencySymbol: currencyMetadata?.symbol || "",
+          pricePerToken: currencyMetadata && priceInWei
             ? Number(toTokens(priceInWei, currencyMetadata.decimals))
-            : 0;
-
-        return (
-            <TokenMint
-                contract={contract}
-                displayName={displayName}
-                contractImage={contractMetadataQuery.data?.image || ""}
-                description={description}
-                currencySymbol={currencySymbol}
-                pricePerToken={pricePerToken}
-            />
-        );
-    } catch (error) {
-        console.error("Error loading contract data:", error);
-        // Return a minimal version of TokenMint with error state
-        return (
-            <TokenMint
-                contract={contract}
-                displayName="Error Loading Contract"
-                contractImage=""
-                description="There was an error loading the contract data. Please try again later."
-                currencySymbol=""
-                pricePerToken={0}
-            />
-        );
+            : 0
+        });
+      } catch (error) {
+        console.error("Error initializing contract:", error);
+        setTokenData({
+          contract: undefined,
+          displayName: "Error Loading Contract",
+          description: "There was an error loading the contract data. Please try again later.",
+          contractImage: "",
+          currencySymbol: "",
+          pricePerToken: 0
+        });
+      }
     }
+
+    initializeContract();
+  }, []);
+
+  if (loading) {
+    return <div>Loading token data...</div>;
+  }
+
+  if (!tokenData.contract) {
+    return <div>Contract not initialized</div>;
+  }
+
+  return (
+    <TokenMint
+      contract={tokenData.contract}
+      displayName={tokenData.displayName}
+      contractImage={tokenData.contractImage}
+      description={tokenData.description}
+      currencySymbol={tokenData.currencySymbol}
+      pricePerToken={tokenData.pricePerToken}
+    />
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading token minter...</div>}>
+      <TokenMintContainer />
+    </Suspense>
+  );
 }

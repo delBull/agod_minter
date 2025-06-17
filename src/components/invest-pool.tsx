@@ -9,16 +9,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus } from "lucide-react";
-import { useAddress } from "@thirdweb-dev/react";
+import { useActiveAccount } from "thirdweb/react";
 import { useInvestPoolLogic } from "./invest-pool-logic";
 import Image from "next/image";
 
 export function InvestPool() {
-  const account = useAddress();
+  const account = useActiveAccount(); 
   const [amount, setAmount] = useState(0.1);
   const { InvestButton, depositedEth } = useInvestPoolLogic();
 
-  if (!account) return null;
+  if (!account?.address) return null;
 
   return (
     <Card className="w-full max-w-md p-4 sm:p-8 animate-fadeIn relative">
@@ -75,11 +75,13 @@ export function InvestPool() {
         </div>
 
         <div className="text-center text-sm text-gray-300 mb-4">
-          {depositedEth > 0 ? (
-            <>Tienes {depositedEth.toFixed(4)} ETH invertido en el pool</>
-          ) : (
-            <>Aún no tienes ETH invertido</>
-          )}
+          {depositedEth === undefined ? (
+          <>Cargando balance...</>
+        ) : depositedEth > 0 ? (
+          <>Tienes {depositedEth.toFixed(4)} ETH invertido en el pool</>
+        ) : (
+          <>Aún no tienes ETH invertido</>
+        )}
         </div>
       </CardContent>
 

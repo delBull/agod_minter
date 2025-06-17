@@ -1,7 +1,7 @@
 import { Chain } from "thirdweb/chains";
 
 
-export const baseChain: Chain = {
+export const baseChain = {
     id: 8453,
     name: "Base Mainnet",
     rpc: "https://mainnet.base.org",
@@ -14,8 +14,7 @@ export const baseChain: Chain = {
         name: "BaseScan",
         url: "https://base.blockscout.com/",
     }],
-    // Omitimos la propiedad testnet ya que es mainnet
-} as const;
+} as Chain;
 
 export const BaseSepoliaTestnet: Chain = {
   id: 84532,

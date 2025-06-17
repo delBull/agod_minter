@@ -1,9 +1,20 @@
 "use client";
 
-import { ThirdwebProvider as ThirdwebProviderV4 } from "@thirdweb-dev/react";
+import { ThirdwebProvider } from "thirdweb/react";
 import { baseChain } from "@/lib/chains";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 60 * 1000,
+    },
+  },
+});
+
 
 function ConnectionLogger({ children }: { children: React.ReactNode }) {
     useEffect(() => {
@@ -56,12 +67,24 @@ function ConnectionLogger({ children }: { children: React.ReactNode }) {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+    const [isReady, setIsReady] = useState(false);
     const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-    if (!reCaptchaKey) {
-        console.error('NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not configured');
+    const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
+
+    useEffect(() => {
+        if (clientId) {
+            setIsReady(true);
+        } else {
+            console.error('NEXT_PUBLIC_THIRDWEB_CLIENT_ID is not configured');
+        }
+    }, [clientId]);
+
+    if (!isReady) {
+        return <div>Loading providers...</div>;
     }
 
     return (
+        <QueryClientProvider client={queryClient}>
         <GoogleReCaptchaProvider
             reCaptchaKey={reCaptchaKey || ''}
             scriptProps={{
@@ -78,11 +101,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
             useRecaptchaNet={true}
             language="es"
         >
-            <ThirdwebProviderV4>
+            <ThirdwebProvider>
                 <ConnectionLogger>
                     {children}
                 </ConnectionLogger>
-            </ThirdwebProviderV4>
+            </ThirdwebProvider>
         </GoogleReCaptchaProvider>
+      </QueryClientProvider>
     );
 }

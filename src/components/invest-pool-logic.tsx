@@ -1,64 +1,115 @@
 "use client";
 
 import { toast } from "sonner";
-import {
-  useContract,
-  useContractRead,
-  useAddress
-} from "@thirdweb-dev/react";
-import { ethers } from "ethers";
-import { useState } from "react";
-import vaultAbi from "./abis/TimeLockedEthInvestmentVault.json";
+import { useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
+import { prepareContractCall } from "thirdweb";
+import { utils } from "ethers";
+import { useState, useEffect } from "react";
 import { CONTRACTS } from "@/lib/constants";
+import { baseChain } from "@/lib/chains";
+import { client } from "@/lib/thirdwebClient";
+
+const vaultAbi = [
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "address", name: "account", type: "address" }],
+    name: "deposit",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  }
+] as const;
+
+const toastStyle = {
+  style: {
+    background: "linear-gradient(to right, #9333ea, #db2777)",
+    color: "white",
+    fontFamily: "monospace",
+    fontSize: "1rem",
+    borderRadius: "0.5rem",
+    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+    border: "none",
+  },
+  duration: 5000,
+};
+
+const errorMessages = {
+  userRejected: "Operación cancelada por el usuario",
+  default: "Error realizando la inversión",
+  networkError: "Error de conexión. Verifica tu red e inténtalo de nuevo"
+};
 
 export const useInvestPoolLogic = () => {
-  const address = useAddress();
-  const { contract: vault } = useContract(
-    CONTRACTS.POOL_SEPOLIA,
-    vaultAbi
-  );
-
-  const { data: rawBalance } = useContractRead(
-    vault!,
-    "balanceOf",
-    [address || ""]
-  );
-  const depositedEth = rawBalance
-    ? Number(ethers.utils.formatEther(rawBalance as ethers.BigNumber))
-    : 0;
-
+  const account = useActiveAccount();
   const [loading, setLoading] = useState(false);
+  const [depositedEth, setDepositedEth] = useState(0);
+  const { mutate: sendTransaction } = useSendTransaction();
+
+  // Read balance using useReadContract
+  const { data: balance } = useReadContract({
+    contract: {
+      client,
+      chain: baseChain,
+      address: CONTRACTS.POOL_SEPOLIA,
+      abi: vaultAbi,
+    },
+    method: "balanceOf",
+    params: [account?.address || "0x0"],
+  });
+
+  // Update depositedEth when balance changes
+  useEffect(() => {
+    if (balance) {
+      setDepositedEth(Number(utils.formatUnits(balance, 18)));
+    }
+  }, [balance]);
 
   const InvestButton = (amountEth: number) => {
-    if (!address) return null;
+    if (!account?.address) return null;
 
     const handleInvest = async () => {
       try {
         setLoading(true);
         if (amountEth <= 0) {
-          toast.error("Monto debe ser mayor a 0");
+          toast.error("Monto debe ser mayor a 0", toastStyle);
           return;
         }
-        const amountWei = ethers.utils.parseEther(
-          amountEth.toString()
-        );
-        const tx = await vault!.call(
-          "deposit",
-          [address],
-          { value: amountWei }
-        );
-        toast.success("Transacción enviada", { duration: 4000 });
-        await tx.wait();
-        toast.success("¡Inversión confirmada!", {
-          duration: 4000,
+
+        const amountWei = utils.parseUnits(amountEth.toString(), 18);
+
+        toast.success("Iniciando transacción...", toastStyle);
+        
+        const transaction = prepareContractCall({
+          contract: {
+            client,
+            chain: baseChain,
+            address: CONTRACTS.POOL_SEPOLIA,
+            abi: vaultAbi,
+          },
+          method: "deposit",
+          params: [account.address],
+          value: BigInt(amountWei.toString())
         });
+
+        await sendTransaction(transaction as any);
+        toast.success("Transacción enviada", toastStyle);
       } catch (e: any) {
-        console.error(e);
-        toast.error(
-          e?.message.includes("user rejected")
-            ? "Operación cancelada"
-            : "Error realizando la inversión"
-        );
+        console.error("Error en inversión:", e);
+        let errorMessage = errorMessages.default;
+        
+        if (e?.message.includes("user rejected")) {
+          errorMessage = errorMessages.userRejected;
+        } else if (e?.message.includes("network")) {
+          errorMessage = errorMessages.networkError;
+        }
+        
+        toast.error(errorMessage, toastStyle);
       } finally {
         setLoading(false);
       }
