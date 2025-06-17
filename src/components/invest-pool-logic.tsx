@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { CONTRACTS } from "@/lib/constants";
 import { baseChain } from "@/lib/chains";
 import { client } from "@/lib/thirdwebClient";
+import type { InvestTransactionStep } from "./invest-transaction-status";
 
 const vaultAbi = [
   {
@@ -35,6 +36,7 @@ const toastStyle = {
     borderRadius: "0.5rem",
     boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
     border: "none",
+    marginBottom: "1rem",
   },
   duration: 5000,
 };
@@ -51,7 +53,6 @@ export const useInvestPoolLogic = () => {
   const [depositedEth, setDepositedEth] = useState(0);
   const { mutate: sendTransaction } = useSendTransaction();
 
-  // Read balance using useReadContract
   const { data: balance } = useReadContract({
     contract: {
       client,
@@ -70,12 +71,18 @@ export const useInvestPoolLogic = () => {
     }
   }, [balance]);
 
+  const [transactionStep, setTransactionStep] = useState<InvestTransactionStep>(-1);
+  const [showTransactionStatus, setShowTransactionStatus] = useState(false);
+
   const InvestButton = (amountEth: number) => {
     if (!account?.address) return null;
 
     const handleInvest = async () => {
       try {
         setLoading(true);
+        setTransactionStep(0);
+        setShowTransactionStatus(true);
+
         if (amountEth <= 0) {
           toast.error("Monto debe ser mayor a 0", toastStyle);
           return;
@@ -84,7 +91,6 @@ export const useInvestPoolLogic = () => {
         const amountWei = utils.parseUnits(amountEth.toString(), 18);
 
         toast.success("Iniciando transacción...", toastStyle);
-        
         const transaction = prepareContractCall({
           contract: {
             client,
@@ -97,8 +103,17 @@ export const useInvestPoolLogic = () => {
           value: BigInt(amountWei.toString())
         });
 
+        setTransactionStep(1);
         await sendTransaction(transaction as any);
         toast.success("Transacción enviada", toastStyle);
+
+        setTransactionStep(2);
+        toast.success("¡Inversión confirmada!", toastStyle);
+
+        setTimeout(() => {
+          setShowTransactionStatus(false);
+          setTransactionStep(-1);
+        }, 5000);
       } catch (e: any) {
         console.error("Error en inversión:", e);
         let errorMessage = errorMessages.default;
@@ -117,7 +132,7 @@ export const useInvestPoolLogic = () => {
 
     return (
       <button
-        className={`w-full font-mono text-white p-3 rounded mt-2 ${
+        className={`flex items-center gap-2 px-8 w-full sm:w-96 font-mono text-white p-3 rounded-lg mt-2 ${
           loading
             ? "bg-gray-500 cursor-not-allowed"
             : "bg-gradient-to-r from-green-600 to-green-300 hover:opacity-90"
@@ -135,5 +150,7 @@ export const useInvestPoolLogic = () => {
   return {
     InvestButton,
     depositedEth,
+    transactionStep,
+    showTransactionStatus,
   };
 };

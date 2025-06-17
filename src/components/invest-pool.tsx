@@ -12,11 +12,17 @@ import { Minus, Plus } from "lucide-react";
 import { useActiveAccount } from "thirdweb/react";
 import { useInvestPoolLogic } from "./invest-pool-logic";
 import Image from "next/image";
+import { InvestTransactionStatus } from "./invest-transaction-status";
 
 export function InvestPool() {
   const account = useActiveAccount(); 
   const [amount, setAmount] = useState(0.1);
-  const { InvestButton, depositedEth } = useInvestPoolLogic();
+  const {
+    InvestButton,
+    depositedEth,
+    transactionStep,
+    showTransactionStatus
+  } = useInvestPoolLogic();
 
   if (!account?.address) return null;
 
@@ -38,6 +44,13 @@ export function InvestPool() {
           className="mx-auto mb-6 rounded-lg shadow-lg"
         />
 
+                {showTransactionStatus ? (
+          <InvestTransactionStatus
+            currentStep={transactionStep}
+            isVisible={showTransactionStatus}
+          />
+        ) : (
+          <>
         <div className="flex items-center justify-center mb-2">
           <Button
             variant="outline"
@@ -83,10 +96,12 @@ export function InvestPool() {
           <>Aún no tienes ETH invertido</>
         )}
         </div>
+        </>
+        )}
       </CardContent>
 
       <CardFooter className="absolute bottom-4 left-0 w-full">
-        <div className="px-8">
+        <div>
           {InvestButton(amount)}
         </div>
       </CardFooter>
