@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "compilerOptions": {
+    "strict": true
+  },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.3",
     "@radix-ui/react-label": "^2.1.0",
@@ -18,8 +21,7 @@
     "@react-spring/web": "^9.7.5",
     "@tabler/icons-react": "^3.22.0",
     "@tanstack/react-query": "^5.60.6",
-    "@thirdweb-dev/chains": "^0.1.120",
-    "@thirdweb-dev/react": "^3.13.1",
+    "@thirdweb-dev/react": "^4.4.0",
     "cal-sans": "^1.0.1",
     "class-variance-authority": "^0.7.0",
     "ethers": "^5.7.2",
@@ -36,7 +38,8 @@
     "simplex-noise": "^4.0.3",
     "sonner": "^1.7.0",
     "tailwindcss-animate": "^1.0.7",
-    "thirdweb": "^5.61.6"
+    "thirdweb": "^5.61.6",
+    "viem": "^2.21.45"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -48,6 +51,9 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss": "^3.4.15",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "ethers": "5.7.2"
   },
   "packageManager": "pnpm@9.13.2"
 }
