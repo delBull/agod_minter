@@ -1,6 +1,7 @@
 "use client";
 
 import { ThirdwebProvider } from "thirdweb/react";
+import { inAppWallet, createWallet } from "thirdweb/wallets";
 import { baseChain } from "@/lib/chains";
 import { useEffect, useState } from "react";
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';

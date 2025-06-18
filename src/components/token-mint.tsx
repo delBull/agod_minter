@@ -194,18 +194,17 @@ export function TokenMint(props: Props) {
           )}
         </CardContent>
 
-        <CardFooter className="absolute bottom-2 flex-col items-center left-0 justify-center w-full">
-          <div className="flex items-center gap-2 px-8 w-full sm:w-96">
-            <div className="flex-1">
+        <CardFooter className="flex-col items-center justify-center w-full pt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 px-8 w-full sm:w-96">
+            <div className="w-full sm:flex-1">
               {renderMintButton(quantity, false, "", isMinting)}
             </div>
-
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md" />
               <TooltipProvider>
                 <Tooltip delayDuration={100}>
                   <TooltipTrigger asChild>
-                    <button onClick={handleAddToWallet} className="relative px-3 h-9 rounded-md flex items-center gap-1 text-[10px] font-mono text-zinc-100">
+                    <button onClick={handleAddToWallet} className="relative w-full h-9 px-3 rounded-md flex items-center justify-center gap-1 text-xs font-mono text-zinc-100">
                       <span>AGOD</span>
                       <Coins className="h-4 w-4" />
                     </button>
