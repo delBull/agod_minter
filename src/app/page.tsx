@@ -16,18 +16,34 @@ import { inAppWallet, createWallet } from "thirdweb/wallets";
 const contractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
 //const PoolSepoliaContractAddress = "0x165D93671C2CC6A5C763A806c7e6f4f437762C29";
 
+const passkeyDomain =
+  typeof window !== "undefined" &&
+  window.location.hostname === "localhost"
+    ? "localhost:3000"
+    : "minter.agodecosystem.com";
+
 const wallets = [
     inAppWallet({
-        auth: {
-          options: [
-            "google",
-            "discord",
-            "email",
-            "x",
-            "phone",
-            "telegram",
-          ],
+      auth: {
+        options: [
+          "google",
+          "discord",
+          "email",
+          "x",
+          "passkey",
+          "phone",
+          "telegram",
+        ],
+        passkeyDomain,
+      },
+      metadata: {
+        image: {
+          src: "/agodworld.png",
+          alt: "Minter | AGOD Ecosystem",
+          width: 180,
+          height: 180,
         },
+      },
     }),
     createWallet("io.metamask"),
     createWallet("io.rabby"),
@@ -50,9 +66,17 @@ function StyledConnectButton() {
                         }}
                         theme="dark"
                         connectModal={{
-                            size: "compact",
+                            size: "wide",
                             showThirdwebBranding: false,
+                            title: "AGOD Ecosystem",
+                            titleIcon: "/icon.png",
                         }}
+                        
+                        accountAbstraction={{
+                            chain: baseChain,
+                            sponsorGas: true,
+                        }}
+                        locale={"es_ES"}
                     />
                 </div>
             </div>

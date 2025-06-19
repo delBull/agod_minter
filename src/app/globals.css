@@ -104,3 +104,62 @@
     visibility: hidden !important;
     opacity: 0 !important;
 }
+.btn-wallet-accion { 
+  background: linear-gradient(90deg,#9333ea,#db2777); 
+  color: white; 
+  font-family: monospace; 
+  border-radius: 10px; 
+  font-size: 1rem; 
+  padding: 0.7em 1.3em; 
+  font-weight: bold; 
+  letter-spacing: 1px; 
+  border: none; 
+  cursor: pointer; 
+  box-shadow: 0 2px 12px #a726a955; 
+  transition: opacity .2s; 
+} 
+
+.btn-wallet-accion:hover { 
+  opacity: .92; 
+}
+/* Animación para el ícono del modal de conexión */
+@keyframes subtle-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* 
+  Selector para el ícono del título en el modal de Thirdweb.
+  Este selector es específico para la estructura que Thirdweb usa actualmente.
+  Si en el futuro no funciona, podría necesitar un ajuste.
+*/
+[data-thirdweb-modal="ConnectWallet"] [data-radix-dialog-title] > img {
+  animation: subtle-float 5s ease-in-out infinite;
+}
+/* Animación de depuración para el ícono del modal */
+@keyframes debug-bob {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+}
+
+/* 
+  Selector de depuración para el ícono del título en el modal de Thirdweb.
+  Este selector es más específico para asegurar que se aplique.
+*/
+div[data-thirdweb-modal="ConnectWallet"] header[data-radix-dialog-title] > img {
+  animation: debug-bob 2s ease-in-out infinite !important;
+}
