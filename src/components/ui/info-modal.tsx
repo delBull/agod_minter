@@ -39,10 +39,10 @@ export function InfoModal({ isOpen, onClose, children, title }: InfoModalProps) 
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             transition={{ duration: 0.3 }}
-            className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-4xl relative p-4 sm:p-8 max-h-[90vh] overflow-y-auto"
+            className="rounded-lg border border-zinc-800 bg-zinc-950/50 text-card-foregrand shadow-sm backdrop-blur-md w-full max-w-4xl relative p-4 animate-fadeIn sm:p-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-900 pt-2 pb-4">
+            <div className="flex justify-between items-center mb-4 sticky top-0 pt-2 pb-4">
               <h3 className="text-lg sm:text-xl font-bold text-white">{title}</h3>
               <button
                 onClick={onClose}

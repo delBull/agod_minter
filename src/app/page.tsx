@@ -1,7 +1,6 @@
 "use client";
 
-import { TokenMint } from "@/components/token-mint";
-import { InvestPool } from "@/components/invest-pool";
+import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
 import { client } from "@/lib/thirdwebClient";
 import { getContract } from "thirdweb/contract";
 import { baseChain } from "@/lib/chains";
@@ -10,7 +9,7 @@ import { toast } from "sonner";
 import { EcosystemResources } from "@/components/ecosystem-resources";
 import { Vortex } from "@/components/ui/vortex";
 import { AlertTriangle } from "lucide-react";
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { inAppWallet, createWallet } from "thirdweb/wallets";
 
 const contractAddress = "0xFC5fc05E5146f258A29654c03d351d4a61a856DC";
@@ -44,6 +43,10 @@ const wallets = [
           height: 180,
         },
       },
+      smartAccount: {
+        chain: baseChain,
+        sponsorGas: true,
+      },
     }),
     createWallet("io.metamask"),
     createWallet("io.rabby"),
@@ -72,10 +75,6 @@ function StyledConnectButton() {
                             titleIcon: "/icon.png",
                         }}
                         
-                        accountAbstraction={{
-                            chain: baseChain,
-                            sponsorGas: true,
-                        }}
                         locale={"es_ES"}
                     />
                 </div>
@@ -87,7 +86,7 @@ function StyledConnectButton() {
 function Header(): JSX.Element {
   return (
     <div className="relative w-full md:h-auto h-[300px]">
-      <div className="absolute inset-0 md:opacity-100 opacity-50">
+      <div className="absolute inset-0 md:opacity-100 opacity-50 pointer-events-none">
         <Vortex
           backgroundColor="transparent"
           baseHue={280}
@@ -129,6 +128,7 @@ function Header(): JSX.Element {
 }
 
 export default function Home() {
+  const account = useActiveAccount();
   const [contract, setContract] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -173,19 +173,7 @@ export default function Home() {
         <div className="flex justify-center w-full top-0">
             <StyledConnectButton />
          </div>
-         <div className="container mx-auto px-4">
-        <div className="grid sm:grid-cols-2 gap-2 mb-8 grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] md:grid-cols-[repeat(auto-fit,_minmax(350px,_1fr))] lg:grid-cols-[repeat(auto-fit,_minmax(400px,_1fr))]">
-        <TokenMint
-          contract={contract}
-          displayName="AGOD Token"
-          description="El utility y governance token de AGOD Ecosystem, respaldado por activos reales, te permite participar en decisiones, obtener rendimientos y desbloquear servicios exclusivos."
-          contractImage="/icon.png"
-          pricePerToken={0.007}
-          currencySymbol="USDC"
-        />
-        <InvestPool />
-        </div>
-        </div>
+        {account && <ExpandableCardDemo contract={contract} />}
         <EcosystemResources />
       </div>
     </main>

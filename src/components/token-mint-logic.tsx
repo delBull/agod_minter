@@ -132,4 +132,3 @@ export const useTokenMintLogic = (props: Props) => {
         renderMintButton
     };
 };
-

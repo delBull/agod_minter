@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Minus, Plus, Coins } from "lucide-react";
 import type { ThirdwebContract } from "thirdweb";
 import { useActiveAccount } from "thirdweb/react";
-//import { client } from "@/lib/thirdwebClient";
 import { useTokenMintLogic, TransactionStep } from "./token-mint-logic";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { balanceOf } from "thirdweb/extensions/erc20";
