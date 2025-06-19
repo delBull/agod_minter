@@ -69,7 +69,7 @@ function StyledConnectButton() {
                         }}
                         theme="dark"
                         connectModal={{
-                            size: "wide",
+                            size: "compact",
                             showThirdwebBranding: false,
                             title: "AGOD Ecosystem",
                             titleIcon: "/icon.png",
