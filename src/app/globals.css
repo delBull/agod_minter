@@ -164,6 +164,28 @@ div[data-thirdweb-modal="ConnectWallet"] header[data-radix-dialog-title] > img {
   animation: debug-bob 2s ease-in-out infinite !important;
 }
 
+@keyframes subtle-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+img[src="/agodworld.png"] {
+  animation: subtle-float 4s ease-in-out infinite !important;
+}
+
+@media (max-width: 767px) {
+  img[src="/agodworld.png"] {
+    display: none !important;
+  }
+}
+
 @media (max-width: 767px) {
   img[src="/agodworld.png"] {
     display: none !important;
