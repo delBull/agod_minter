@@ -163,3 +163,9 @@
 div[data-thirdweb-modal="ConnectWallet"] header[data-radix-dialog-title] > img {
   animation: debug-bob 2s ease-in-out infinite !important;
 }
+
+@media (max-width: 767px) {
+  img[src="/agodworld.png"] {
+    display: none !important;
+  }
+}
