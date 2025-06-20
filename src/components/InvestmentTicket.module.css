@@ -1,0 +1,149 @@
+.ticketWrapper {
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  max-width: 384px; /* Corresponds to max-w-sm */
+}
+
+.ticketBody {
+  background-color: white;
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+  color: black;
+  position: relative;
+}
+
+.mainSection {
+  padding: 1.5rem; /* p-6 */
+  background: linear-gradient(to bottom, #f472b6, #a855f7); /* from-pink-400 to-purple-600 */
+  color: white;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+
+.actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.actionButton {
+  color: white;
+  background-color: transparent; 
+  height: 1.75rem;
+  width: 1.75rem;
+}
+.actionButton:hover {
+  color: white;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  width: 10rem;
+  height: 10rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.title {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700;
+  letter-spacing: 0.05em; /* tracking-wider */
+  margin-bottom: -10px;
+}
+
+.subtitle {
+  font-size: 0.875rem; /* text-sm */
+  opacity: 0.9;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.detailItem p:first-child {
+  font-size: 0.75rem; /* text-xs */
+  opacity: 0.8;
+  margin-top: 0;
+}
+
+.detailItem p:last-child {
+  font-weight: 700;
+  font-size: 1.125rem; /* text-lg */
+}
+
+.qrContainer {
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0.75rem; /* p-3 */
+  border-radius: 0.5rem; /* rounded-lg */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrCaption {
+  text-align: center;
+  font-size: 0.75rem; /* text-xs */
+  margin-top: 0.5rem;
+  opacity: 0.8;
+}
+
+.perforatedEdge {
+  position: relative;
+  height: 1rem;
+  background-color: #a855f9; 
+}
+
+.perforationHole {
+  position: absolute;
+  top: -0.5rem;
+  width: 1rem;
+  height: 1rem;
+  background-color: #1f2937;
+  border-radius: 9999px;
+}
+
+.perforationHoleLeft {
+  left: -0.5rem;
+}
+
+.perforationHoleRight {
+  right: -0.5rem;
+}
+
+.dashedLine {
+  border-top: 2px dashed rgba(209, 213, 219, 0.5);
+  height: 100%;
+}
+
+.bottomSection {
+  padding: 1.5rem; /* p-6 */
+  background-color: #a855f7; /* bg-purple-600 */
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  color: white;
+}
+
+.barcodeContainer {
+  text-align: center;
+}
+
+.barcodeId {
+  font-size: 0.75rem; /* text-xs */
+  margin-top: 0.25rem;
+  letter-spacing: 0.1em; /* tracking-widest */
+}

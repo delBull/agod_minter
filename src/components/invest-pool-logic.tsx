@@ -85,8 +85,9 @@ export const useInvestPoolLogic = () => {
       value: amountWei,
     });
 
-    await sendTx(tx);
+    const { transactionHash } = await sendTx(tx);
     await refetchDeposits();
+    return { transactionHash, amountEth };
   };
 
   return {

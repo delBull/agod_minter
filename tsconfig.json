@@ -22,6 +22,15 @@
     },
     "target": "ES2020"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/contracts/smartcontracts/PandorasFamilyFriends.sol"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/contracts/smartcontracts/PandorasFamilyFriends.sol"
+  ],
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "./.storybook" }
+  ]
 }

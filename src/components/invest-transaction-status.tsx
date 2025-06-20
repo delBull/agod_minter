@@ -1,12 +1,28 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
+import InvestmentTicket from "./InvestmentTicket"; // Assuming the path is correct
 
 export type InvestTransactionStep = -1 | 0 | 1 | 2;
 
 interface TransactionStatusProps {
   currentStep: InvestTransactionStep;
   isVisible: boolean;
+  investmentAmountMXN?: number;
+  investmentAmountETH?: number;
+  transactionHash?: string;
+  walletAddress?: string;
+  explorerUrl?: string;
+}
+
+interface TicketData {
+    transactionId: string;
+    investmentAmountMXN: number;
+    investmentAmountETH: number;
+    investmentInfo: string;
+    transactionHash: string;
+    walletAddress: string;
 }
 
 const steps = [
@@ -15,8 +31,53 @@ const steps = [
   { title: "¡Depósito completado!", description: "ETH invertido exitosamente" },
 ];
 
-export function InvestTransactionStatus({ currentStep, isVisible }: TransactionStatusProps) {
+export function InvestTransactionStatus({
+    currentStep,
+    isVisible,
+    investmentAmountMXN,
+    investmentAmountETH,
+    transactionHash,
+    walletAddress,
+    explorerUrl
+}: TransactionStatusProps) {
+  const [ticketData, setTicketData] = useState<TicketData | null>(null);
+
+  useEffect(() => {
+    if (currentStep === 2 && transactionHash && investmentAmountMXN && investmentAmountETH && walletAddress && explorerUrl) {
+      const createTicket = async () => {
+        try {
+          const response = await fetch('/api/investment-ticket', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              investmentAmountMXN,
+              investmentAmountETH,
+              investmentInfo: "Pandora's Box Investment",
+              transactionHash,
+              walletAddress,
+            }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setTicketData(data);
+          } else {
+            console.error('Failed to create investment ticket');
+          }
+        } catch (error) {
+          console.error('Error calling ticket API:', error);
+        }
+      };
+      createTicket();
+    }
+  }, [currentStep, transactionHash, investmentAmountMXN, investmentAmountETH, walletAddress]);
+
   if (!isVisible) return null;
+
+  if (ticketData) {
+    return <InvestmentTicket {...ticketData} explorerUrl={explorerUrl} />;
+  }
 
   return (
     <div className="flex flex-col items-center space-y-6 py-8 min-h-[200px]">
@@ -25,8 +86,8 @@ export function InvestTransactionStatus({ currentStep, isVisible }: TransactionS
         const isComplete = currentStep > index;
 
         return (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className={`flex items-center space-x-4 transition-opacity duration-500 ${
               currentStep < index ? 'opacity-50' : 'opacity-100'
             }`}
@@ -39,10 +100,10 @@ export function InvestTransactionStatus({ currentStep, isVisible }: TransactionS
               <Circle className="h-6 w-6 text-gray-400" />
             )}
             <div className="flex flex-col">
-              <span 
+              <span
                 className={`text-sm font-medium ${
-                  isPending ? "text-purple-500" : 
-                  isComplete ? "text-green-500" : 
+                  isPending ? "text-purple-500" :
+                  isComplete ? "text-green-500" :
                   "text-gray-400"
                 }`}
               >

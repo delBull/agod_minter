@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus, Info, Banknote, Youtube } from "lucide-react";
-import { useActiveAccount } from "thirdweb/react";
+import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { useInvestPoolLogic } from "./invest-pool-logic";
 import Image from "next/image";
 import { InvestTransactionStatus } from "./invest-transaction-status";
@@ -29,10 +29,16 @@ const greenToastStyle = {
 
 export function InvestPool() {
   const account = useActiveAccount();
+  const activeChain = useActiveWalletChain();
   const [amountMXN, setAmountMXN] = useState(100);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [isMethodModalOpen, setMethodModalOpen] = useState(false);
   const [isGuideModalOpen, setGuideModalOpen] = useState(false);
+  const [transactionDetails, setTransactionDetails] = useState({
+    hash: '',
+    amountEth: 0,
+    amountMxn: 0,
+  });
 
   const {
     depositedMXN,
@@ -58,7 +64,13 @@ export function InvestPool() {
       setTransactionStep(0);
       toast("Iniciando transacción...", greenToastStyle);
 
-      await handleInvest(amountMXN);
+      const { transactionHash, amountEth } = await handleInvest(amountMXN);
+      
+      setTransactionDetails({
+        hash: transactionHash,
+        amountEth: amountEth,
+        amountMxn: amountMXN,
+      });
 
       setTransactionStep(1);
       toast("Transacción enviada. Esperando confirmación...", greenToastStyle);
@@ -68,10 +80,11 @@ export function InvestPool() {
       setTransactionStep(2);
       toast.success("¡Inversión confirmada!", greenToastStyle);
 
-      setTimeout(() => {
-        setShowTransactionStatus(false);
-        setTransactionStep(-1);
-      }, 3000);
+      // No longer hiding the status automatically, ticket will be shown
+      // setTimeout(() => {
+      //   setShowTransactionStatus(false);
+      //   setTransactionStep(-1);
+      // }, 3000);
     } catch (error: any) {
       console.error(error);
       let errorMessage = "Error al procesar la inversión.";
@@ -95,6 +108,11 @@ export function InvestPool() {
             <InvestTransactionStatus
               currentStep={transactionStep}
               isVisible={showTransactionStatus}
+              investmentAmountMXN={transactionDetails.amountMxn}
+              investmentAmountETH={transactionDetails.amountEth}
+              transactionHash={transactionDetails.hash}
+              walletAddress={account.address}
+              explorerUrl={activeChain?.blockExplorers?.[0]?.url}
             />
           ) : (
             <>
