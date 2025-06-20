@@ -7,9 +7,50 @@ import MetaPixel from '@/components/MetaPixel';
 
 const inter = Inter({ subsets: ["latin"] });
 
+const siteConfig = {
+  name: "AGOD Token Minter",
+  description: "Participate in the AGOD Ecosystem by minting your AGOD tokens. Join our community and be part of the future of decentralized governance.",
+  url: "https://minter.agodecosystem.com",
+  ogImage: "https://minter.agodecosystem.com/agodfull.png",
+};
+
 export const metadata: Metadata = {
-  title: "AGOD Token Minter",
-  description: "Mint your AGOD tokens",
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: siteConfig.name,
+    template: `%s | AGOD Ecosystem`,
+  },
+  description: siteConfig.description,
+  keywords: ["AGOD", "Ecosystem", "Token", "Minter", "Crypto", "Blockchain", "Web3"],
+  authors: [{ name: "AGOD Team", url: siteConfig.url }],
+  creator: "AGOD Team",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: siteConfig.name,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.ogImage],
+  },
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({

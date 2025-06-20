@@ -27,7 +27,7 @@ const greenToastStyle = {
   duration: 5000,
 };
 
-export function InvestPool() {
+export function InvestPool({ onClose }: { onClose?: () => void }) {
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const [amountMXN, setAmountMXN] = useState(100);
@@ -103,6 +103,30 @@ export function InvestPool() {
   return (
     <>
       <Card className="w-full max-w-md p-4 sm:p-8 animate-fadeIn relative">
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 20,
+              background: "rgba(255,255,255,0.85)",
+              borderRadius: "9999px",
+              width: 24,
+              height: 24,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              boxShadow: "0 2px 8px #0002",
+              cursor: "pointer"
+            }}
+            aria-label="Cerrar"
+          >
+            <span style={{fontSize: 16, fontWeight: 700, color: "#23272f"}}>×</span>
+          </button>
+        )}
         <CardContent className="mb-3">
           {showTransactionStatus ? (
             <InvestTransactionStatus

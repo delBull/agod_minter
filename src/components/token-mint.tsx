@@ -24,6 +24,7 @@ interface Props {
   contractImage: string;
   pricePerToken: number;
   currencySymbol: string;
+  onClose?: () => void;
 }
 
 function formatBalance(balance: number): string {
@@ -136,7 +137,31 @@ export function TokenMint(props: Props) {
   // Ya hay cuenta: mostramos la interfaz
   return (
     <div className="flex flex-col items-center justify-center px-4">
-      <Card className="w-full max-w-md p-4 sm:p-8 animate-fadeIn">
+      <Card className="w-full max-w-md p-4 sm:p-8 animate-fadeIn relative">
+        {props.onClose && (
+          <button
+            onClick={props.onClose}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 20,
+              background: "rgba(255,255,255,0.85)",
+              borderRadius: "9999px",
+              width: 24,
+              height: 24,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              boxShadow: "0 2px 8px #0002",
+              cursor: "pointer"
+            }}
+            aria-label="Cerrar"
+          >
+            <span style={{fontSize: 16, fontWeight: 700, color: "#23272f"}}>×</span>
+          </button>
+        )}
         <CardContent className="mb-3">
           <h2 className="text-xl font-bold text-zinc-100 text-center">{props.displayName}</h2>
           <p className="text-sm text-zinc-300 mb-4 text-center">{props.description}</p>

@@ -24,7 +24,7 @@ export default function ExpandableCardDemo({ contract }: ExpandableCardDemoProps
       ctaText: "Invertir",
       ctaLink: "#",
       content: () => {
-        return <InvestPool />;
+        return <InvestPool onClose={() => setActive(null)} />;
       },
     },
     {
@@ -42,6 +42,7 @@ export default function ExpandableCardDemo({ contract }: ExpandableCardDemoProps
             contractImage="/icon.png"
             pricePerToken={0.007}
             currencySymbol="USDC"
+            onClose={() => setActive(null)}
           />
         );
       },
