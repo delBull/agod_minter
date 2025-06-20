@@ -262,17 +262,31 @@ export function InvestPool({ onClose }: { onClose?: () => void }) {
       </InfoModal>
 
       <InfoModal isOpen={isGuideModalOpen} onClose={() => setGuideModalOpen(false)} title="Guía para Invertir">
-        <div className="aspect-w-16 aspect-h-9">
-          <iframe
-            src="https://www.youtube.com/embed/m-R080e_Hhc"
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-full"
-          ></iframe>
-        </div>
-      </InfoModal>
+  {/* Versión horizontal para web/tablet */}
+  <div className="hidden md:block w-full aspect-w-16 aspect-h-9">
+    <iframe
+      src="https://player.vimeo.com/video/1095152377?h=c6f741dd6f"
+      title="Vimeo video player"
+      frameBorder="0"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowFullScreen
+      className="w-full h-full rounded-lg"
+    ></iframe>
+  </div>
+  {/* Versión vertical para móviles */}
+  <div className="block md:hidden w-full">
+    <div className="w-full aspect-w-9 aspect-h-16 mx-auto">
+      <iframe
+        src="https://player.vimeo.com/video/1095152377?h=c6f741dd6f"
+        title="Vimeo video player"
+        frameBorder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+        className="w-full h-full rounded-lg"
+      ></iframe>
+    </div>
+  </div>
+</InfoModal>
     </>
   );
 }
