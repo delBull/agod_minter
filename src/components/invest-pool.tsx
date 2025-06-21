@@ -261,31 +261,33 @@ export function InvestPool({ onClose }: { onClose?: () => void }) {
         <p>Estás invirtiendo en MXN. Nuestra plataforma se encarga de convertir tu inversión a ETH de forma segura y transparente. Tus rendimientos también los recibirás en una moneda estable equivalente al dólar (USDC), protegiéndote de la volatilidad.</p>
       </InfoModal>
 
-      <InfoModal isOpen={isGuideModalOpen} onClose={() => setGuideModalOpen(false)} title="Guía para Invertir">
-  {/* Versión horizontal para web/tablet */}
-  <div className="hidden md:block w-full aspect-w-16 aspect-h-9">
-    <iframe
-      src="https://player.vimeo.com/video/1095152377?h=c6f741dd6f"
-      title="Vimeo video player"
-      frameBorder="0"
-      allow="autoplay; fullscreen; picture-in-picture"
-      allowFullScreen
-      className="w-full h-full rounded-lg"
-    ></iframe>
-  </div>
-  {/* Versión vertical para móviles */}
-  <div className="block md:hidden w-full">
-    <div className="w-full aspect-w-9 aspect-h-16 mx-auto">
-      <iframe
-        src="https://player.vimeo.com/video/1095152377?h=c6f741dd6f"
-        title="Vimeo video player"
-        frameBorder="0"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-        className="w-full h-full rounded-lg"
-      ></iframe>
-    </div>
-  </div>
+      <InfoModal
+        isOpen={isGuideModalOpen}
+        onClose={() => setGuideModalOpen(false)}
+        title="Guía para Invertir"
+      >
+        {/* Web Video (16:9) */}
+        <div className="hidden md:block" style={{ position: 'relative', paddingTop: '56.25%' }}>
+          <iframe
+            src="https://player.vimeo.com/video/1095296492?h=35fc873367&autoplay=1" // URL para web
+            title="Vimeo video player"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+          />
+        </div>
+        {/* Mobile Video (9:16) - Usando el mismo video por ahora */}
+        <div className="block md:hidden" style={{ position: 'relative', paddingTop: '177.78%' }}>
+          <iframe
+            src="https://player.vimeo.com/video/1095296492?h=35fc873367&autoplay=1" // URL para mobile
+            title="Vimeo video player"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+          />
+        </div>
 </InfoModal>
     </>
   );
